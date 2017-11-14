@@ -21,13 +21,15 @@ contract FamilyTree {
 
 	event FamilyCreated(address fromAddress, address toAddress, uint256 linkId);
 
-	function FamilyTree(string name) public {
+	function FamilyTree(string name, string gender, string dateOfBirth) public {
 		lastNodeId = 0;
 		FamilyNode memory node = familyNodes[0];
 		node.name = name;
 		node.spouseId = -1;
 		node.nodeId = 0;
 		node.noOfChildren = 0;
+		node.gender = gender;
+		node.dateOfBirth = dateOfBirth;
 	}
 
 	function addFamilyMember(string name, string gender, string dateOfBirth,string dateOfDeath) public returns (int128 newId) {
