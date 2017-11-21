@@ -7,21 +7,32 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 </head>
-<body class="container">
-	<h1>Family Tree DAPP Application</h1>
-	<a class="btn btn-primary" onclick="App.createContract()" role="button">Create New FamilyTree</a>
-	<a class="btn btn-primary" onclick="App.findContract()" role="button">Retrieve FamilyTree</a>
-  <div class="item">
-			<label for="contractAddress">
-				Contract Address:
-			</label>
-			<input 
-				type="text"
-				id="contractAddress"
-				placeholder="Scan address or create a new contract"/>
-		</div>
-	<div class="tree" id="FamilyTree"></div>div>
-      
+<body>
+    <div class="container">
+        <h1>Family Tree DAPP Application</h1>
+            <p class="lead">Enter your coinbase address and password for the purpose of paying gas to create or update the Family Tree.
+            Make sure you keep the Contract Address safe so that it can be retrieved later.</p>
+            <p/>
+        <form>
+          <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+            <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address">
+          </div>
+          <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+            <input id="password" type="password" class="form-control" name="password" placeholder="Account Password">
+          </div>
+          <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+            <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
+          </div>
+          <p></p>
+         <input id="findContract" type="button" value="Create/Retrieve" onclick="findContract()" class="btn btn-primary">
+              
+        </form>    
+        
+        <div class="tree" id="FamilyTree"></div>
+    </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
