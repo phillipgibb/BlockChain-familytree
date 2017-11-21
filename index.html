@@ -1,58 +1,30 @@
-<!DOCTYPE html>
 <html>
 <head>
   <title>Family Tree Dapp</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+ <link rel="stylesheet" href="style.css">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 </head>
 <body class="container">
-  <h1>Family Tree DAPP Application</h1>
-  <div class="tree">
-    <ul>
-		<li>
-			<a href="#">Parent</a>
-			<ul>
-				<li>
-					<a href="#">Child</a>
-					<ul>
-						<li>
-							<a href="#">Grand Child</a>
-						</li>
-					</ul>
-				</li>
-				<li>
-					<a href="#">Child</a>
-					<ul>
-						<li><a href="#">Grand Child</a></li>
-						<li>
-							<a href="#">Grand Child</a>
-							<ul>
-								<li>
-									<a href="#">Great Grand Child</a>
-								</li>
-								<li>
-									<a href="#">Great Grand Child</a>
-								</li>
-								<li>
-									<a href="#">Great Grand Child</a>
-								</li>
-							</ul>
-						</li>
-						<li><a href="#">Grand Child</a></li>
-					</ul>
-				</li>
-			</ul>
-		</li>
-	</ul>
-</div>
-  <input type="text" id="candidate" />
-  <a href="#" onclick="voteForCandidate()" class="btn btn-primary">Vote</a>
+	<h1>Family Tree DAPP Application</h1>
+	<a class="btn btn-primary" onclick="App.createContract()" role="button">Create New FamilyTree</a>
+	<a class="btn btn-primary" onclick="App.findContract()" role="button">Retrieve FamilyTree</a>
+  <div class="item">
+			<label for="contractAddress">
+				Contract Address:
+			</label>
+			<input 
+				type="text"
+				id="contractAddress"
+				placeholder="Scan address or create a new contract"/>
+		</div>
+	<div class="tree" id="FamilyTree"></div>div>
+      
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-<script src="./index.js"></script>
+<script src="app/index.js"></script>
 </html>
