@@ -31,7 +31,7 @@ contract FamilyTree {
 		node.gender = gender;
 		node.dateOfBirth = dateOfBirth;
 	}
-
+	
 	function addFamilyMember(string name, string gender, string dateOfBirth,string dateOfDeath) public returns (int128 newId) {
 		var node = familyNodes[lastNodeId++];
 		node.name = name;
@@ -77,7 +77,6 @@ contract FamilyTree {
 			familyNodes[id].motherId = motherId;
 		}
 	}
-
 
 	//Add a new spouse to current member and visa versa
 	function addSpouse(int128 otherSpouseId, string name, string gender, string dateOfBirth,string dateOfDeath) public {

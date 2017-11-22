@@ -5,7 +5,7 @@ var familyTreeABI = JSON.parse(process.env.FAMILYTREE_ABI);
 var familyTreeCode = process.env.FAMILYTREE_CODE;
 //chekout:
 //https://github.com/jsanguinetti/foodsafe/blob/e3f9b8b2d2af3e96ce46e79a3eb95748ae84d5a6/app/javascripts/app.js
-export default class ContractHelper {
+export default class FamilyTreeWrapper {
   constructor (web3) {
     this.web3 = web3
   }

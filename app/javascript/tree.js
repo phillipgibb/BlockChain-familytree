@@ -8,11 +8,16 @@ var options = [
   ['First Option', 'Second Option', 'Third Option']
 ]
 
+export default class FamilyTreeWrapper {
+  constructor (web3) {
+    this.web3 = web3
+  }
+
 // get contract address if it already exists or create a new one
 
 // assuming we have done that, create tree
 
-function makeTree (array) {
+makeTree (array) {
   // Create the list element:
   var list = document.createElement('ul')
 
