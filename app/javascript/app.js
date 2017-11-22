@@ -12,6 +12,7 @@ import TreeWrapper from './tree.js';
 // Import our contract artifacts and turn them into usable abstractions.
 import familyTree_artifacts from '../../build/contracts/FamilyTree.json'
 
+
 // FamilyTree is our usable abstraction, which we'll use through the code below.
 var FamilyTree = contract(familyTree_artifacts);
 
@@ -20,14 +21,18 @@ var FamilyTree = contract(familyTree_artifacts);
 // For application bootstrapping, check out window.addEventListener below.
 var accounts;
 var account;
+var familyTreeABI = JSON.parse(process.env.FAMILYTREE_ABI);
+var familyTreeCode = process.env.FAMILYTREE_CODE;
+var familyTreeContract;
 
 window.App = {
   start: function() {
     var self = this;
 
+    // You have a web3 browser! Continue below!
     // Bootstrap the Familytree abstraction for Use.
     FamilyTree.setProvider(web3.currentProvider);
-
+    
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
       if (err != null) {
@@ -42,6 +47,8 @@ window.App = {
 
       accounts = accs;
       account = accounts[0];
+      web3.eth.defaultAccount = account;
+      familyTreeContract = web3.eth.contract(familyTreeABI);
     });
   },
 
@@ -51,10 +58,15 @@ window.App = {
     const contractAddress = document.getElementById('contractAddress').value;
     const password = document.getElementById('password').value;
     
-    const cWrapper = new ContractWrapper(foodSafeContract);
+    const familyTreeWrapper = new FamilyTreeWrapper(familyTreeContract);
     try {
-      const deployedFoodSafe = await cWrapper.at(contractAddress);
-      await deployedFoodSafe.addNewLocation(locationId, locationName, encryptedSecret)
+      const deployedFamilyTree = await familyTreeWrapper.findContract(contractAddress);
+      var number = await deployedFamilyTree.getNumberOfFamilyMembers();
+      console.log(`Found ${number} family members`)
+      for (var i = 0; i < number; i++) {
+        var info = await deployedFamilyTree.getNode(i);
+        console.log(`Family Node ${i} = [${info}]`)
+      }
     } catch (err) {
       console.log(err);
     }
@@ -81,6 +93,22 @@ window.App = {
       console.log(e);
       self.setStatus("Error getting balance; see log.");
     });
+  },
+  makeTree: function (array) {
+    // Create the list element:
+    var list = document.createElement('ul')
+  
+    for (var i = 0; i < array.length; i++) {
+      // Create the list item:
+      var item = document.createElement('li')
+  
+      // Set its contents:
+      item.appendChild(document.createTextNode(array[i]))
+  
+      // Add it to the list:
+      list.appendChild(item)
+    }
+    document.getElementById('FamilyTree').appendChild(list)
   }
 };
 

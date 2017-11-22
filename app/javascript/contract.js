@@ -88,7 +88,7 @@ export default class FamilyTreeWrapper {
         if (error)
           reject(error);
         else
-          resolve(new ContractWrapper(deployedContract));
+          resolve(new FamilyTreeWrapper(deployedContract));
       });
     };
     return new Promise(findAsync);
