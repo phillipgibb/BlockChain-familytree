@@ -1,7 +1,7 @@
 import 'bootstrap';
 // Import the page's CSS. Webpack will know what to do with it.
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "../stylesheets/app.css";
+import "../stylesheets/style.css";
 
 // Import libraries we need.
 import { default as Web3} from 'web3';
