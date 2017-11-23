@@ -56,7 +56,7 @@ export default class FamilyTreeWrapper {
 
   createNewContract (name, gender, dateOfBirth) {
     web3.eth.getAccounts().then((accounts) => {
-      const estimatedGas = await estimateGas ( { data: familyTreeCode })
+      const estimatedGas = estimateGas ( { data: familyTreeCode })
       const gasPrice = web3.eth.gasPrice
 
       console.log('gas Price: ' + gasPrice)
