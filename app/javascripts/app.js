@@ -1,15 +1,16 @@
-var $ = require("jquery");
-const fs = require('fs');
-const solc = require('solc');
-var Pudding = require('ether-pudding');
+//var $ = require("jquery");
+//const fs = require('fs');
+//const solc = require('solc');
+//var Pudding = require('ether-pudding');
 
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
-import FamilyTreeWrapper from './contract.js';
+import FamilyTreeWrapper from './FamilyTreeWrapper';
+var ethereum_address = require('ethereum-address');
 
 var familyTreeContract;
- var accounts;
- var account;
+var accounts;
+var account;
 
 (function(window, document, undefined){
   
@@ -35,10 +36,8 @@ var familyTreeContract;
           // Bootstrap the Familytree abstraction for Use.
          // FamilyTree.setProvider(web3.currentProvider);
          console.log("compileContract")
-         const familyTreeWrapper = new FamilyTreeWrapper(window.web3);
-         FamilyTreeWrapper.inialize();
-         
-//familyTreeContract = require("./FamilyTree.sol.js");
+         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
+         this.familyTreeWrapper.initialize();
           
           // Get the initial account balance so it can be displayed.
           web3.eth.getAccounts(function(err, accs) {
@@ -51,17 +50,76 @@ var familyTreeContract;
               alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
               return;
             }
-            alert("DFSDFASDFASFD")
-            accounts = accs;
+             accounts = accs;
             account = accounts[0];
             web3.eth.defaultAccount = account;
-//familyTreeContract = web3.eth.contract(familyTreeABI);
-  
-            
+          
           });
-          document.getElementById('findContractButton').addEventListener('click',app.findContract,false);
+          document.getElementById('findContractButton').addEventListener('click',app.interactWithContract,false);
         },
-  
+        app.unlockAccount = function(val) {
+          var accounts = web3.eth.coinbase;
+          var passphrase = val;
+          if(passphrase !=null){
+            web3.personal.unlockAccount(web3.eth.coinbase, val,1000, function (error, result){
+              if(error){
+                var str =error.toString();
+                if(str.includes("could not decrypt")){
+                  alert("Please enter the valid Passphrase.! ");
+                }else{
+                  alert(str);
+                }
+              }
+            });
+          }
+        },
+        app.interactWithContract =  function(){
+          alert("interactWithContract")
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          const contractAddress = document.getElementById('contractAddress').value;
+          const password = document.getElementById('password').value;
+
+          var validateOwnerAddress = false;
+          var validatePassword = false;
+
+          if (password.length == 0 || password == "") {
+            console.log("Password must be defined");
+          }else{
+            validatePassword = true;
+          }
+
+          if (ownerAddress.length == 0 || ownerAddress == "") {
+            console.log("Owner Address must be defined");
+          }else{
+            if(ethereum_address.isAddress(ownerAddress)){
+              console.log("owner address ok");
+              validateOwnerAddress = true
+            }else{
+              alert("Not a Valid Owner address")
+              console.log("not a valid address");
+            }
+          }
+
+          if(validateOwnerAddress && validatePassword){
+            if(contractAddress.length != 0 && contractAddress != ""){
+              if (ethereum_address.isAddress(contractAddress)){
+                App.unlockAccount(password);
+                App.findContract();
+              }else{
+                alert("Not a valid contract address")
+              }
+            }else{
+              App.newFamilyTree();
+            }
+          }
+        },
+        app.newFamilyTree = function(){
+          console.log("New Family Tree");
+          //const familyTreeWrapper = new FamilyTreeWrapper(this.familyTreeContract);
+          console.log("familyTreeWrapper : " + this.familyTreeWrapper)
+          this.familyTreeWrapper.newFamilyTree("Me", "Boy", "long time");
+          
+        },
         app.findContract = function(){
   
           const ownerAddress = document.getElementById('ownerAddress').value;
@@ -69,8 +127,10 @@ var familyTreeContract;
           const password = document.getElementById('password').value;
           
           const familyTreeWrapper = new FamilyTreeWrapper(familyTreeContract);
+          
           try {
             const deployedFamilyTree = familyTreeWrapper.findContract(contractAddress);
+            console.log("deployedFamilyTree = " + deployedFamilyTree)
             var number = deployedFamilyTree.getNumberOfFamilyMembers();
             console.log(`Found ${number} family members`)
             for (var i = 0; i < number; i++) {
