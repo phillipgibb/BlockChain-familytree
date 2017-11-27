@@ -1,14 +1,9 @@
-//var $ = require("jquery");
-//const fs = require('fs');
-//const solc = require('solc');
-//var Pudding = require('ether-pudding');
-
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
 var ethereum_address = require('ethereum-address');
 
-var familyTreeContract;
+//var familyTreeContract;
 var accounts;
 var account;
 
@@ -32,9 +27,6 @@ var account;
       },
       app.start = function() {
           var self = this;
-          // You have a web3 browser! Continue below!
-          // Bootstrap the Familytree abstraction for Use.
-         // FamilyTree.setProvider(web3.currentProvider);
          console.log("compileContract")
          this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
          this.familyTreeWrapper.initialize();
@@ -74,7 +66,6 @@ var account;
           }
         },
         app.interactWithContract =  function(){
-          alert("interactWithContract")
           const ownerAddress = document.getElementById('ownerAddress').value;
           const contractAddress = document.getElementById('contractAddress').value;
           const password = document.getElementById('password').value;
@@ -104,7 +95,7 @@ var account;
             if(contractAddress.length != 0 && contractAddress != ""){
               if (ethereum_address.isAddress(contractAddress)){
                 App.unlockAccount(password);
-                App.findContract();
+                App.findContract(ownerAddress, contractAddress);
               }else{
                 alert("Not a valid contract address")
               }
@@ -120,23 +111,33 @@ var account;
           this.familyTreeWrapper.newFamilyTree("Me", "Boy", "long time");
           
         },
-        app.findContract = function(){
+        app.findContract = async function(ownerAddress, contractAddress){
   
-          const ownerAddress = document.getElementById('ownerAddress').value;
-          const contractAddress = document.getElementById('contractAddress').value;
-          const password = document.getElementById('password').value;
-          
-          const familyTreeWrapper = new FamilyTreeWrapper(familyTreeContract);
+        console.log("ownerAddress = " + ownerAddress)
+        console.log("contractAddress = " + contractAddress)     
+      //    const familyTreeWrapper = new FamilyTreeWrapper(familyTreeContract);
           
           try {
-            const deployedFamilyTree = familyTreeWrapper.findContract(contractAddress);
-            console.log("deployedFamilyTree = " + deployedFamilyTree)
-            var number = deployedFamilyTree.getNumberOfFamilyMembers();
-            console.log(`Found ${number} family members`)
-            for (var i = 0; i < number; i++) {
-              var info = deployedFamilyTree.getNode(i);
-              console.log(`Family Node ${i} = [${info}]`)
-            }
+            const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
+            //.then(contract => {
+              console.log("deployedFamilyTree = " + deployedFamilyTree)
+              var number = deployedFamilyTree.getNumberOfFamilyMembers((function(error, result) { 
+                console.log('result: ' + result + ', error: ' + error); 
+                console.log(`Found ${result} family members`)
+                for (var i = 0; i <= result; i++) {
+                  var info = deployedFamilyTree.getNode(i, function(error, result){
+                    if(!error){
+                        console.log(result)
+                        console.log(`Family Node ${i} = [${info}]`)
+                    }else
+                        console.error(error);
+                })
+                  
+                }
+              }));
+
+         //   });
+
           } catch (err) {
             console.log(err);
           }

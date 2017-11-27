@@ -7,11 +7,12 @@ contract FamilyTree {
 
 	struct FamilyNode {
 		int128 nodeId;
-		string name;
-		string gender;
+		bytes32 firstName;
+		bytes32 lastName;
+		bytes32 gender;
 		int128 spouseId;
-		string dateOfBirth;
-		string dateOfDeath;
+		bytes32 dateOfBirth;
+		bytes32 dateOfDeath;
 		int128 motherId;
 		int128 fatherId;
 		uint noOfChildren;
@@ -21,20 +22,29 @@ contract FamilyTree {
 
 	event FamilyCreated(address fromAddress, address toAddress, uint256 linkId);
 
-	function FamilyTree(string name, string gender, string dateOfBirth) public {
-		lastNodeId = 0;
-		FamilyNode memory node = familyNodes[0];
-		node.name = name;
-		node.spouseId = -1;
-		node.nodeId = 0;
-		node.noOfChildren = 0;
-		node.gender = gender;
-		node.dateOfBirth = dateOfBirth;
+	function FamilyTree(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth) public {
+		lastNodeId = 1;
+		int128[] memory childreIds;
+		FamilyNode memory node = FamilyNode(
+			0,
+			firstName,
+			lastName,
+			gender,
+			-1,
+			dateOfBirth,
+			"",
+			-1,
+			-1,
+			0,
+			childreIds
+		);
+		familyNodes[0] = node;
 	}
 	
-	function addFamilyMember(string name, string gender, string dateOfBirth,string dateOfDeath) public returns (int128 newId) {
+	function addFamilyMember(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public returns (int128 newId) {
 		var node = familyNodes[lastNodeId++];
-		node.name = name;
+		node.firstName = firstName;
+		node.lastName = lastName;
 		node.gender = gender;
 		node.dateOfBirth = dateOfBirth;
 		node.dateOfDeath = dateOfDeath;
@@ -47,9 +57,24 @@ contract FamilyTree {
 		return lastNodeId;
 	}
 
-	function getNode(int128 id) public constant returns (string name, string gender, int128 spouseId, string dateOfBirth, string dateOfDeath, int128 motherId, int128 fatherId, int128[] childrenIds) {
+	function getFullName(int128 id) public constant returns (bytes32, bytes32) {
 		FamilyNode memory fn = familyNodes[id];
-		return (fn.name, fn.gender, fn.spouseId, fn.dateOfBirth, fn.dateOfDeath, fn.motherId, fn.fatherId, fn.childrenIds);
+    return (
+    	fn.firstName,
+    	fn.lastName
+    );
+}
+
+	function getNode(int128 id) public constant returns (bytes32 gender, int128 spouseId, bytes32 dateOfBirth, bytes32 dateOfDeath, int128 motherId, int128 fatherId, uint noOfChildren) {
+		FamilyNode memory fn = familyNodes[id];
+		return (
+			fn.gender, 
+			fn.spouseId, 
+			fn.dateOfBirth, 
+			fn.dateOfDeath, 
+			fn.motherId, 
+			fn.fatherId, 
+			fn.noOfChildren);
 	}
 
 	function hasThisChild(int128 parentId, int128 childId) public constant returns (bool) {
@@ -64,8 +89,8 @@ contract FamilyTree {
 		return false;
 	}
 
-	function addChild(int128 fatherId, int128 motherId, string name, string gender, string dateOfBirth,string dateOfDeath) public {
-		var id = addFamilyMember(name, gender, dateOfBirth, dateOfDeath);
+	function addChild(int128 fatherId, int128 motherId, bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public {
+		var id = addFamilyMember(firstName, lastName, gender, dateOfBirth, dateOfDeath);
 		if (!hasThisChild(fatherId, id)) {
 			familyNodes[fatherId].childrenIds.push(id);
 			familyNodes[fatherId].noOfChildren += 1;
@@ -79,22 +104,22 @@ contract FamilyTree {
 	}
 
 	//Add a new spouse to current member and visa versa
-	function addSpouse(int128 otherSpouseId, string name, string gender, string dateOfBirth,string dateOfDeath) public {
-		var id = addFamilyMember(name, gender, dateOfBirth, dateOfDeath);
+	function addSpouse(int128 otherSpouseId, bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public {
+		var id = addFamilyMember(firstName, lastName, gender, dateOfBirth, dateOfDeath);
 		familyNodes[otherSpouseId].spouseId = id;
 		familyNodes[id].spouseId = otherSpouseId;
 
 	}
 	//Add Father to child and visa versa
-	function addFather(int128 childId, string name, string gender, string dateOfBirth,string dateOfDeath) public {
-		var id = addFamilyMember(name, gender, dateOfBirth, dateOfDeath);
+	function addFather(int128 childId, bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public {
+		var id = addFamilyMember(firstName, lastName, gender, dateOfBirth, dateOfDeath);
 		familyNodes[childId].fatherId = id;
 		familyNodes[id].childrenIds.push(childId);
 
 	}
 	//Add Mother to child and visa versa
-	function addMother(int128 childId, string name, string gender, string dateOfBirth,string dateOfDeath) public {
-		var id = addFamilyMember(name, gender, dateOfBirth, dateOfDeath);
+	function addMother(int128 childId, bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public {
+		var id = addFamilyMember(firstName, lastName, gender, dateOfBirth, dateOfDeath);
 		familyNodes[childId].motherId = id;
 		familyNodes[id].childrenIds.push(childId);
 	}
@@ -105,7 +130,7 @@ contract FamilyTree {
 		familyNodes[otherSpouseId].spouseId = -1;
 	}
 
-	function funeral(int128 id, string dateOfDeath) public {
+	function funeral(int128 id, bytes32 dateOfDeath) public {
 		familyNodes[id].dateOfDeath = dateOfDeath;
 	}
 
