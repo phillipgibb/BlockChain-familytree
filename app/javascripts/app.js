@@ -49,27 +49,27 @@ var account;
           });
           document.getElementById('findContractButton').addEventListener('click',app.interactWithContract,false);
         },
-        app.unlockAccount = function(val) {
-          var accounts = web3.eth.coinbase;
-          var passphrase = val;
+        app.unlockAccount = function(address, passphrase) {
           if(passphrase !=null){
-            web3.personal.unlockAccount(web3.eth.coinbase, val,1000, function (error, result){
+            web3.personal.unlockAccount(address, passphrase, 10000, function (error, result){
               if(error){
-                var str =error.toString();
+                var str = error.toString();
                 if(str.includes("could not decrypt")){
                   alert("Please enter the valid Passphrase.! ");
                 }else{
-                  alert(str);
+                  alert(str + `for address: ${address} and passphrase ${passphrase}`);
                 }
               }
             });
+          }else{
+            console.log("NO PASSPHRASE")
           }
         },
         app.interactWithContract =  function(){
           const ownerAddress = document.getElementById('ownerAddress').value;
           const contractAddress = document.getElementById('contractAddress').value;
-          const password = document.getElementById('password').value;
-
+          //const password = document.getElementById('password').value;
+          const password = $('#password').val();
           var validateOwnerAddress = false;
           var validatePassword = false;
 
@@ -94,21 +94,22 @@ var account;
           if(validateOwnerAddress && validatePassword){
             if(contractAddress.length != 0 && contractAddress != ""){
               if (ethereum_address.isAddress(contractAddress)){
-                App.unlockAccount(password);
+                App.unlockAccount(contractAddress,password);
                 App.findContract(ownerAddress, contractAddress);
               }else{
                 alert("Not a valid contract address")
               }
             }else{
-              App.newFamilyTree();
+              App.unlockAccount(contractAddress,password);
+              App.newFamilyTree(contractAddress);
             }
           }
         },
-        app.newFamilyTree = function(){
+        app.newFamilyTree = function(contractAddress){
           console.log("New Family Tree");
           //const familyTreeWrapper = new FamilyTreeWrapper(this.familyTreeContract);
           console.log("familyTreeWrapper : " + this.familyTreeWrapper)
-          this.familyTreeWrapper.newFamilyTree("Me", "Boy", "long time");
+          this.familyTreeWrapper.newFamilyTree(contractAddress,"Me", "Boy", "long time");
           
         },
         app.findContract = async function(ownerAddress, contractAddress){
@@ -121,27 +122,31 @@ var account;
             const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
             //.then(contract => {
               console.log("deployedFamilyTree = " + deployedFamilyTree)
-              var number = deployedFamilyTree.getNumberOfFamilyMembers((function(error, result) { 
+               var number = await deployedFamilyTree.getNumberOfFamilyMembers((function(error, result) {
                 console.log('result: ' + result + ', error: ' + error); 
-                console.log(`Found ${result} family members`)
-                for (var i = 0; i <= result; i++) {
-                  var info = deployedFamilyTree.getNode(i, function(error, result){
-                    if(!error){
-                        console.log(result)
-                        console.log(`Family Node ${i} = [${info}]`)
-                    }else
-                        console.error(error);
-                })
-                  
-                }
-              }));
-
+                if(!error){
+                  console.log(`Found ${result} family members`)
+                  for (var i = 0; i < result; i++) {
+                    console.log(`Family member Nr: ${i}`)
+                      App.getNode(deployedFamilyTree,i);
+                    }
+                  }else{
+                    console.log(`Error finding contract at address ${contractAddress}`);
+                  }
+                }));
          //   });
-
           } catch (err) {
             console.log(err);
           }
           return false;
+        },
+        app.getNode = function(deployedFamilyTree, index){
+          deployedFamilyTree.getNode(index, function(error, result){
+            if(!error){
+                console.log(`Family Node ${index} = [${result}]`)
+            }else
+                console.error(error);
+            })
         },
   
         app.setStatus = function(message) {

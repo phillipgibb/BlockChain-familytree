@@ -1,6 +1,7 @@
 pragma solidity ^0.4.15;
 
 contract FamilyTree {
+	address owner = msg.sender; //set owner as msg.sender
 	mapping (int128 => FamilyNode) familyNodes;
 
 	int128 lastNodeId;
@@ -133,5 +134,15 @@ contract FamilyTree {
 	function funeral(int128 id, bytes32 dateOfDeath) public {
 		familyNodes[id].dateOfDeath = dateOfDeath;
 	}
+
+	function kill() public { //self-destruct function, 
+		if (msg.sender == owner) {
+			selfdestruct(owner); 
+		}
+	}
+	
+	function () public payable {
+ 
+ 	}	
 
 }
