@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
 contract FamilyTree {
-	address owner = msg.sender; //set owner as msg.sender
+	address owner;
 	mapping (int128 => FamilyNode) familyNodes;
 
 	int128 lastNodeId;
@@ -21,9 +21,10 @@ contract FamilyTree {
 	}
 
 
-	event FamilyCreated(address fromAddress, address toAddress, uint256 linkId);
+	event FamilyCreated(address fromAddress, bytes32 firstName, bytes32 lastName);
 
-	function FamilyTree(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth) public {
+	function FamilyTree(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth) public payable {
+		owner = msg.sender;
 		lastNodeId = 1;
 		int128[] memory childreIds;
 		FamilyNode memory node = FamilyNode(
@@ -40,6 +41,7 @@ contract FamilyTree {
 			childreIds
 		);
 		familyNodes[0] = node;
+		FamilyCreated(owner, firstName, lastName);
 	}
 	
 	function addFamilyMember(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth,bytes32 dateOfDeath) public returns (int128 newId) {

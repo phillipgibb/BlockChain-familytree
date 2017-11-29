@@ -7,12 +7,11 @@ var ethereum_address = require('ethereum-address');
 var accounts;
 var account;
 
-(function(window, document, undefined){
+(function(window, document){
   
     window.App = (function(){    
       var app = { };
       app.init = function() {
-        console.log("INIT")
         // Checking if Web3 has been injected by the browser (Mist/MetaMask)
         if (typeof web3 !== 'undefined') {
           console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 balance, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
@@ -26,104 +25,119 @@ var account;
         App.start();
       },
       app.start = function() {
-          var self = this;
-         console.log("compileContract")
-         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
-         this.familyTreeWrapper.initialize();
+        var self = this;
+        this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
+        this.familyTreeWrapper.initialize();
           
-          // Get the initial account balance so it can be displayed.
-          web3.eth.getAccounts(function(err, accs) {
-            if (err != null) {
-              alert("There was an error fetching your accounts.");
-              return;
-            }
-  
-            if (accs.length == 0) {
-              alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-              return;
-            }
-             accounts = accs;
-            account = accounts[0];
-            web3.eth.defaultAccount = account;
+        // Get the initial account balance so it can be displayed.
+        web3.eth.getAccounts(function(err, accs) {
+          if (err != null) {
+            alert("There was an error fetching your accounts.");
+            return;
+          }
+
+          if (accs.length == 0) {
+            alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+            return;
+          }
+          accounts = accs;
+          account = accounts[0];
+          web3.eth.defaultAccount = account;
+        
+        });
           
-          });
-          document.getElementById('findContractButton').addEventListener('click',app.interactWithContract,false);
-        },
+        document.getElementById('makeContractButton').addEventListener('click',App.interactWithContract,false);
+        document.getElementById('findContractButton').addEventListener('click',App.interactWithContract,false);
+        document.getElementById('killContractButton').addEventListener('click',App.destroyContract,false);
+      },
         app.unlockAccount = function(address, passphrase) {
+          document.getElementById('message').value = "";
           if(passphrase !=null){
-            web3.personal.unlockAccount(address, passphrase, 10000, function (error, result){
+            web3.personal.unlockAccount(web3.eth.coinbase, passphrase, 10000, function (error, result){
               if(error){
                 var str = error.toString();
                 if(str.includes("could not decrypt")){
-                  alert("Please enter the valid Passphrase.! ");
+                  alert("Please enter the valid Passphrase.! " + str);
                 }else{
-                  alert(str + `for address: ${address} and passphrase ${passphrase}`);
+                  alert(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
                 }
               }
             });
           }else{
-            console.log("NO PASSPHRASE")
+            app.error("Password/Passphrase is incorrect for your account");
           }
+        }, 
+        app.destroyContract =  function(){
+
+        },
+        app.error = function(errorString){
+          console.log(errorString)
+          $('#message').show();
+          var error_element = $('#message div #errorMessage')
+          error_element.text(errorString);
+          // document.getElementById("errorMessage").innerHTML = errorString ;
+          $('#message').removeClass('fade')
+          $("#message").css("display","block");
+          //document.getElementById("message").style.display = 'block';
+          console.log(error_element.text())
         },
         app.interactWithContract =  function(){
+          console.log("interact")
+         // $('#message div').val("");
           const ownerAddress = document.getElementById('ownerAddress').value;
           const contractAddress = document.getElementById('contractAddress').value;
-          //const password = document.getElementById('password').value;
           const password = $('#password').val();
           var validateOwnerAddress = false;
           var validatePassword = false;
 
           if (password.length == 0 || password == "") {
-            console.log("Password must be defined");
+            app.error("Password must be defined");
           }else{
             validatePassword = true;
           }
 
           if (ownerAddress.length == 0 || ownerAddress == "") {
-            console.log("Owner Address must be defined");
+            app.error("Owner Address must be defined");
           }else{
             if(ethereum_address.isAddress(ownerAddress)){
-              console.log("owner address ok");
               validateOwnerAddress = true
             }else{
-              alert("Not a Valid Owner address")
-              console.log("not a valid address");
+              app.error("Not a valid Address");
             }
           }
 
           if(validateOwnerAddress && validatePassword){
             if(contractAddress.length != 0 && contractAddress != ""){
               if (ethereum_address.isAddress(contractAddress)){
-                App.unlockAccount(contractAddress,password);
-                App.findContract(ownerAddress, contractAddress);
+                // App.unlockAccount(contractAddress,password);
+                document.getElementById('message').value = "";
+                $('#message').hide();
+                var flag = web3.personal.unlockAccount(web3.eth.coinbase, password, 10000);
+                if(flag){
+                  const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
+                  deployedFamilyTree.kill.sendTransaction({from:contractAddress});
+                }else{
+                  app.error("Password/Passphrase is incorrect for your account");
+                }
               }else{
-                alert("Not a valid contract address")
+                app.error("Not a valid contract address");
               }
             }else{
-              App.unlockAccount(contractAddress,password);
-              App.newFamilyTree(contractAddress);
+              app.error("Not a valid owner and contract address");
             }
           }
         },
         app.newFamilyTree = function(contractAddress){
-          console.log("New Family Tree");
-          //const familyTreeWrapper = new FamilyTreeWrapper(this.familyTreeContract);
-          console.log("familyTreeWrapper : " + this.familyTreeWrapper)
           this.familyTreeWrapper.newFamilyTree(contractAddress,"Me", "Boy", "long time");
-          
         },
         app.findContract = async function(ownerAddress, contractAddress){
-  
-        console.log("ownerAddress = " + ownerAddress)
-        console.log("contractAddress = " + contractAddress)     
-      //    const familyTreeWrapper = new FamilyTreeWrapper(familyTreeContract);
-          
+          document.getElementById('message').value = "";
+          $('#message').hide();
           try {
             const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
             //.then(contract => {
               console.log("deployedFamilyTree = " + deployedFamilyTree)
-               var number = await deployedFamilyTree.getNumberOfFamilyMembers((function(error, result) {
-                console.log('result: ' + result + ', error: ' + error); 
+               var number = await deployedFamilyTree.getNumberOfFamilyMembers.call((function(error, result) {
                 if(!error){
                   console.log(`Found ${result} family members`)
                   for (var i = 0; i < result; i++) {
@@ -131,7 +145,7 @@ var account;
                       App.getNode(deployedFamilyTree,i);
                     }
                   }else{
-                    console.log(`Error finding contract at address ${contractAddress}`);
+                    app.error(`Error finding contract at address ${contractAddress}`);
                   }
                 }));
          //   });
@@ -141,11 +155,12 @@ var account;
           return false;
         },
         app.getNode = function(deployedFamilyTree, index){
-          deployedFamilyTree.getNode(index, function(error, result){
+          deployedFamilyTree.getNode.call(index, function(error, result){
             if(!error){
                 console.log(`Family Node ${index} = [${result}]`)
             }else
-                console.error(error);
+              document.getElementById('message').value = error;
+              $('#message').show();
             })
         },
   
@@ -190,4 +205,7 @@ var account;
       if (window.addEventListener) {
         window.addEventListener('DOMContentLoaded', App.init, false);
       }
+      $('.alert .close').on('click', function(e) {
+        $('#message').hide();
+      });
     })(window, window.document);  

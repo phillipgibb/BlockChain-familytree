@@ -8,10 +8,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>Family Tree dAPP Application</h1>
-            <p class="lead">Enter your coinbase address and password for the purpose of paying gas to create or update the Family Tree.
-            Make sure you keep the Contract Address safe so that it can be retrieved later.</p>
-            <p/>
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Family Tree dAPP Application</h4>
+            <p>Enter your address and password/passphrase for the purpose of paying gas to create or update the Family Tree.</p>
+            <hr>
+            <p class="mb-0">Make sure you keep the Contract Address safe so that it can be retrieved later.</p>
+        </div>
         <form name="my-form" >
           <div class="input-group">
             <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
@@ -19,16 +21,26 @@
           </div>
           <div class="input-group">
             <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-            <input id="password" type="password" class="form-control" name="password" placeholder="Account Password">
+            <input id="password" type="password" class="form-control" name="password" placeholder="Account Password" value="pass123">
           </div>
           <div class="input-group">
             <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
             <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
           </div>
+          
           <p></p>
         
-         <input id="findContractButton" type="button" value="Create/Retrieve" class="btn btn-primary">
-        </form>    
+          <input id="makeContractButton" type="button" value="Create" class="btn btn-primary">
+          <input id="findContractButton" type="button" value="Retrieve" class="btn btn-primary">
+          <input id="killContractButton" type="button" value="Remove Contract" class="btn btn-primary">
+        </form>
+        <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;">
+          <div class="row justify-content-between">  
+            <div id = "errorMessage" class="col"></div>
+            <div class="col-lg-2"><a href="#" class="col close" data-dismiss="alert">&times;</a></div>
+          </div>
+        </div>
+    </div>
         
         <div class="tree" id="FamilyTree"></div>
     </div>
@@ -36,7 +48,7 @@
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script><script src="bootbox.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 <script src="app.js" type="text/javascript"></script>
 
 </html>
