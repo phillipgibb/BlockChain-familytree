@@ -3,11 +3,11 @@ import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
 var ethereum_address = require('ethereum-address');
 
-//var familyTreeContract;
 var accounts;
 var account;
+var familyTreeWrapper;
 
-(function(window, document){
+(function(window, document,undefined){
   
     window.App = (function(){    
       var app = { };
@@ -28,7 +28,6 @@ var account;
         var self = this;
         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
         this.familyTreeWrapper.initialize();
-          
         // Get the initial account balance so it can be displayed.
         web3.eth.getAccounts(function(err, accs) {
           if (err != null) {
@@ -46,34 +45,33 @@ var account;
         
         });
           
-        document.getElementById('makeContractButton').addEventListener('click',App.interactWithContract,false);
-        document.getElementById('findContractButton').addEventListener('click',App.interactWithContract,false);
+        document.getElementById('makeContractButton').addEventListener('click',App.newContract,false);
+        document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
         document.getElementById('killContractButton').addEventListener('click',App.destroyContract,false);
       },
-        app.unlockAccount = function(address, passphrase) {
-          document.getElementById('message').value = "";
-          if(passphrase !=null){
+        app.unlockAccount = async function(address, passphrase) {
             web3.personal.unlockAccount(web3.eth.coinbase, passphrase, 10000, function (error, result){
-              if(error){
+              if(!error){
+                return{unlocked:true}
+              }else{
                 var str = error.toString();
                 if(str.includes("could not decrypt")){
-                  alert("Please enter the valid Passphrase.! " + str);
+                  console.log("Please enter the valid Passphrase.! " + str);
+                  return{unlocked:false}
                 }else{
-                  alert(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
+                  return{unlocked:false}
+                  console.log(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
                 }
               }
             });
-          }else{
-            app.error("Password/Passphrase is incorrect for your account");
-          }
         }, 
         app.destroyContract =  function(){
-
+           //deployedFamilyTree.kill.sendTransaction({from:contractAddress});
         },
         app.error = function(errorString){
           console.log(errorString)
           $('#message').show();
-          var error_element = $('#message div #errorMessage')
+          var error_element = $('#message')
           error_element.text(errorString);
           // document.getElementById("errorMessage").innerHTML = errorString ;
           $('#message').removeClass('fade')
@@ -81,87 +79,132 @@ var account;
           //document.getElementById("message").style.display = 'block';
           console.log(error_element.text())
         },
-        app.interactWithContract =  function(){
-          console.log("interact")
-         // $('#message div').val("");
+        app.validatePasswordField = function(){
+          var valid = false;
+          const password = $('#password').val();
+          if (password.length != 0 && password != "") {
+            valid = true;
+          }
+          return{
+            validPassword: valid
+          }
+        },
+        app.validateAddressField = function(address){
+          console.log(`validating ${address}`)
+          var valid = false;
+          if (address.length != 0 && address != "" && ethereum_address.isAddress(address)) {
+            valid = true;
+          }
+          
+          return{
+            validAddress: valid
+          }
+        },
+        app.newContract = async function(){
+          const ownerAddress = document.getElementById('ownerAddress').value;
+          var errors = [];
+
+          var validAddress = App.validateAddressField(ownerAddress).validAddress;
+          if(!validAddress){
+            errors.push("Owner Address is empty or invalid");
+          }
+          var validPassword = App.validatePasswordField().validPassword;
+          if (!validPassword) {
+            errors.push("Password is empty");
+          }
+          var unlocked = App.unlockAccount(ownerAddress);
+          if(validPassword && unlocked){
+            await App.familyTreeWrapper.newFamilyTree(ownerAddress,"Me", "Boy", "long time", (function(error, result) {
+              if(!error){
+                console.log("Result: " + result)
+              }else{
+                console.log("Error: " + error)
+              }
+            }));
+          }else{
+            errors.push("Password/Passphrase is incorrect for your account address");
+            App.displayErrors(errors);
+          }
+          
+        },
+        app.findContract = async function() {
+          console.log("find")
           const ownerAddress = document.getElementById('ownerAddress').value;
           const contractAddress = document.getElementById('contractAddress').value;
-          const password = $('#password').val();
-          var validateOwnerAddress = false;
-          var validatePassword = false;
+          var errors = [];
 
-          if (password.length == 0 || password == "") {
-            app.error("Password must be defined");
-          }else{
-            validatePassword = true;
+          if(!App.validateAddressField(ownerAddress).validAddress){
+            errors.push("Owner Address is empty or invalid");
           }
 
-          if (ownerAddress.length == 0 || ownerAddress == "") {
-            app.error("Owner Address must be defined");
-          }else{
-            if(ethereum_address.isAddress(ownerAddress)){
-              validateOwnerAddress = true
-            }else{
-              app.error("Not a valid Address");
-            }
+          if(!App.validateAddressField(contractAddress).validAddress){
+            errors.push("Contract Address is empty or invalid");
           }
-
-          if(validateOwnerAddress && validatePassword){
-            if(contractAddress.length != 0 && contractAddress != ""){
-              if (ethereum_address.isAddress(contractAddress)){
-                // App.unlockAccount(contractAddress,password);
-                document.getElementById('message').value = "";
-                $('#message').hide();
-                var flag = web3.personal.unlockAccount(web3.eth.coinbase, password, 10000);
-                if(flag){
-                  const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
-                  deployedFamilyTree.kill.sendTransaction({from:contractAddress});
+          if(errors.length === 0){
+            var unlocked = await App.unlockAccount(ownerAddress);
+            if (unlocked) {
+              try {
+                const deployedFamilyTree = App.familyTreeWrapper.findContract(contractAddress);
+                if(deployedFamilyTree){
+                  console.log("deployedFamilyTree = " + deployedFamilyTree)
+                  var number = await deployedFamilyTree.getNumberOfFamilyMembers.call((function(error, result) {
+                   if(!error){
+                     console.log(`Found ${result} family members`)
+                     for (var i = 0; i < result; i++) {
+                       console.log(`Family member Nr: ${i}`)
+                         App.getNode(deployedFamilyTree,i);
+                       }
+                     }else{
+                      console.log(error);
+                      //errors.push(error); - will have to do this manually because of callback
+                      // app.error(`Error finding contract at address ${contractAddress}`);
+                     }
+                   }));
+  
                 }else{
-                  app.error("Password/Passphrase is incorrect for your account");
+                  errors.push("Cannot locate the contract");
                 }
-              }else{
-                app.error("Not a valid contract address");
+              } catch (err) {
+                errors.push("Cannot locate the contract");
+                console.log(err);
               }
             }else{
-              app.error("Not a valid owner and contract address");
+              errors.push("Password/Passphrase is incorrect for your account address");
             }
           }
-        },
-        app.newFamilyTree = function(contractAddress){
-          this.familyTreeWrapper.newFamilyTree(contractAddress,"Me", "Boy", "long time");
-        },
-        app.findContract = async function(ownerAddress, contractAddress){
-          document.getElementById('message').value = "";
-          $('#message').hide();
-          try {
-            const deployedFamilyTree = this.familyTreeWrapper.findContract(contractAddress);
-            //.then(contract => {
-              console.log("deployedFamilyTree = " + deployedFamilyTree)
-               var number = await deployedFamilyTree.getNumberOfFamilyMembers.call((function(error, result) {
-                if(!error){
-                  console.log(`Found ${result} family members`)
-                  for (var i = 0; i < result; i++) {
-                    console.log(`Family member Nr: ${i}`)
-                      App.getNode(deployedFamilyTree,i);
-                    }
-                  }else{
-                    app.error(`Error finding contract at address ${contractAddress}`);
-                  }
-                }));
-         //   });
-          } catch (err) {
-            console.log(err);
+ 
+          if(errors.length != 0){
+            App.displayErrors(errors);
           }
-          return false;
         },
-        app.getNode = function(deployedFamilyTree, index){
-          deployedFamilyTree.getNode.call(index, function(error, result){
+        app.displayErrors = function(errors){
+          var str = "";
+          var error_element = $('#message')
+          error_element.html("");
+          $('#message').show();
+          errors.forEach(function(error){
+              str += '<li>' + error + '</li>' // build the list
+          });
+          
+          error_element.html(str);
+          // document.getElementById("errorMessage").innerHTML = errorString ;
+          $('#message').removeClass('fade')
+          $("#message").css("display","block");
+          //document.getElementById("message").style.display = 'block';
+          errors = []
+
+        },
+        
+        app.getNode = async function(deployedFamilyTree, index){
+          var node = await deployedFamilyTree.getNode.call(index, function(error, result){
             if(!error){
                 console.log(`Family Node ${index} = [${result}]`)
-            }else
+            }else{
               document.getElementById('message').value = error;
               $('#message').show();
+            }
             })
+            console.log("node: " + node)
         },
   
         app.setStatus = function(message) {
@@ -205,7 +248,7 @@ var account;
       if (window.addEventListener) {
         window.addEventListener('DOMContentLoaded', App.init, false);
       }
-      $('.alert .close').on('click', function(e) {
-        $('#message').hide();
-      });
+      // $('.alert .close').on('click', function(e) {
+      //   $('#message').hide();
+      // });
     })(window, window.document);  

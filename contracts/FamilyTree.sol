@@ -68,15 +68,17 @@ contract FamilyTree {
     );
 }
 
-	function getNode(int128 id) public constant returns (bytes32 gender, int128 spouseId, bytes32 dateOfBirth, bytes32 dateOfDeath, int128 motherId, int128 fatherId, uint noOfChildren) {
+	function getNode(int128 id) public constant returns (bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth, int128 spouseId, int128 motherId, int128 fatherId, bytes32 dateOfDeath, uint noOfChildren) {
 		FamilyNode memory fn = familyNodes[id];
 		return (
+		    fn.firstName,
+		    fn.lastName,
 			fn.gender, 
-			fn.spouseId, 
 			fn.dateOfBirth, 
-			fn.dateOfDeath, 
+			fn.spouseId, 
 			fn.motherId, 
 			fn.fatherId, 
+			fn.dateOfDeath,
 			fn.noOfChildren);
 	}
 
