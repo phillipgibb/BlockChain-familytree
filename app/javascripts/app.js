@@ -49,22 +49,6 @@ var familyTreeWrapper;
         document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
         document.getElementById('killContractButton').addEventListener('click',App.destroyContract,false);
       },
-        app.unlockAccount = async function(address, passphrase) {
-            web3.personal.unlockAccount(web3.eth.coinbase, passphrase, 10000, function (error, result){
-              if(!error){
-                return{unlocked:true}
-              }else{
-                var str = error.toString();
-                if(str.includes("could not decrypt")){
-                  console.log("Please enter the valid Passphrase.! " + str);
-                  return{unlocked:false}
-                }else{
-                  return{unlocked:false}
-                  console.log(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
-                }
-              }
-            });
-        }, 
         app.destroyContract =  function(){
            //deployedFamilyTree.kill.sendTransaction({from:contractAddress});
         },
@@ -100,6 +84,22 @@ var familyTreeWrapper;
             validAddress: valid
           }
         },
+        app.unlockAccount = async function(address) {
+          web3.personal.unlockAccount(address, $('#password').val(), 10000, function (error, result){
+            if(!error){
+              return{unlocked:true}
+            }else{
+              var str = error.toString();
+              if(str.includes("could not decrypt")){
+                console.log("Please enter the valid Passphrase.! " + str);
+                return{unlocked:false}
+              }else{
+                return{unlocked:false}
+                console.log(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
+              }
+            }
+          });
+      }, 
         app.newContract = async function(){
           const ownerAddress = document.getElementById('ownerAddress').value;
           var errors = [];
@@ -114,7 +114,7 @@ var familyTreeWrapper;
           }
           var unlocked = App.unlockAccount(ownerAddress);
           if(validPassword && unlocked){
-            await App.familyTreeWrapper.newFamilyTree(ownerAddress,"Me", "Boy", "long time", (function(error, result) {
+            await App.familyTreeWrapper.newFamilyTree(ownerAddress,"Phillip", "Gibb", "Male", "27051972", (function(error, result) {
               if(!error){
                 console.log("Result: " + result)
               }else{
@@ -141,7 +141,7 @@ var familyTreeWrapper;
             errors.push("Contract Address is empty or invalid");
           }
           if(errors.length === 0){
-            var unlocked = await App.unlockAccount(ownerAddress);
+            var unlocked = App.unlockAccount(ownerAddress);
             if (unlocked) {
               try {
                 const deployedFamilyTree = App.familyTreeWrapper.findContract(contractAddress);

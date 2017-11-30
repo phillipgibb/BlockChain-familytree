@@ -23,7 +23,7 @@ contract FamilyTree {
 
 	event FamilyCreated(address fromAddress, bytes32 firstName, bytes32 lastName);
 
-	function FamilyTree(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth) public payable {
+	function FamilyTree(bytes32 firstName, bytes32 lastName, bytes32 gender, bytes32 dateOfBirth) public {
 		owner = msg.sender;
 		lastNodeId = 1;
 		int128[] memory childreIds;
