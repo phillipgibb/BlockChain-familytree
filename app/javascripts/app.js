@@ -251,4 +251,19 @@ var familyTreeWrapper;
       // $('.alert .close').on('click', function(e) {
       //   $('#message').hide();
       // });
+      'use strict';
+      // jQuery('#datetimepicker').datetimepicker({
+      //   timepicker:false,
+      //   formatDate:'DDMMYYYY'
+      //  });
+
+      $(function() {
+        $('[data-toggle="datepicker"]').datepicker({
+          date: new Date(1972, 5, 27), 
+          startDate: new Date(1900, 5, 27), 
+          endDate: new Date(2020, 5, 27), 
+          autoHide: true,
+          zIndex: 2048,
+        });
+      });
     })(window, window.document);  
