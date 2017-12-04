@@ -3,9 +3,11 @@ import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
 var ethereum_address = require('ethereum-address');
 
-var accounts;
-var account;
 var familyTreeWrapper;
+
+var currentOwnerAddress, currentContractAddress, currentFirstName, currentLastName, currentGender, currentDob;
+
+var familyTreeStructure;
 
 (function(window, document,undefined){
   
@@ -28,24 +30,8 @@ var familyTreeWrapper;
         var self = this;
         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
         this.familyTreeWrapper.initialize();
-        // Get the initial account balance so it can be displayed.
-        web3.eth.getAccounts(function(err, accs) {
-          if (err != null) {
-            alert("There was an error fetching your accounts.");
-            return;
-          }
-
-          if (accs.length == 0) {
-            alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-            return;
-          }
-          accounts = accs;
-          account = accounts[0];
-          web3.eth.defaultAccount = account;
-        
-        });
-          
-        document.getElementById('makeContractButton').addEventListener('click',App.newContract,false);
+         
+       // document.getElementById('makeContractButton').addEventListener('click',App.newContract,false);
         document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
         document.getElementById('killContractButton').addEventListener('click',App.destroyContract,false);
       },
@@ -84,8 +70,8 @@ var familyTreeWrapper;
             validAddress: valid
           }
         },
-        app.unlockAccount = async function(address) {
-          web3.personal.unlockAccount(address, $('#password').val(), 10000, function (error, result){
+        app.unlockAccount = async function(address, password) {
+          web3.personal.unlockAccount(address, password, 10000, function (error, result){
             if(!error){
               return{unlocked:true}
             }else{
@@ -100,33 +86,39 @@ var familyTreeWrapper;
             }
           });
       }, 
-        app.newContract = async function(){
-          const ownerAddress = document.getElementById('ownerAddress').value;
-          var errors = [];
+      app.newContract = async function(password){
+        
+        var errors = [];
 
-          var validAddress = App.validateAddressField(ownerAddress).validAddress;
-          if(!validAddress){
-            errors.push("Owner Address is empty or invalid");
-          }
-          var validPassword = App.validatePasswordField().validPassword;
-          if (!validPassword) {
-            errors.push("Password is empty");
-          }
-          var unlocked = App.unlockAccount(ownerAddress);
-          if(validPassword && unlocked){
-            await App.familyTreeWrapper.newFamilyTree(ownerAddress,"Phillip", "Gibb", "Male", "27051972", (function(error, result) {
-              if(!error){
-                console.log("Result: " + result)
-              }else{
-                console.log("Error: " + error)
-              }
-            }));
-          }else{
-            errors.push("Password/Passphrase is incorrect for your account address");
-            App.displayErrors(errors);
-          }
-          
-        },
+        var validAddress = App.validateAddressField(this.currentOwnerAddress).validAddress;
+        if(!validAddress){
+          errors.push("Owner Address is empty or invalid");
+        }
+
+
+
+        var validPassword = App.validatePasswordField(password).validPassword;
+        if (!validPassword) {
+          errors.push("Password is empty");
+        }
+
+        
+
+        var unlocked = App.unlockAccount(this.currentOwnerAddress, password);
+        if(validPassword && unlocked){
+          await App.familyTreeWrapper.newFamilyTree(this.currentContractAddress,this.currentFirstName, this.currentLastName, this.currentGender, this.currentDob, (function(error, result) {
+            if(!error){
+              console.log("Result: " + result)
+            }else{
+              console.log("Error: " + error)
+            }
+          }));
+        }else{
+          errors.push("Password/Passphrase is incorrect for your account address");
+          App.displayErrors(errors);
+        }
+        
+      },
         app.findContract = async function() {
           console.log("find")
           const ownerAddress = document.getElementById('ownerAddress').value;
@@ -144,6 +136,8 @@ var familyTreeWrapper;
             var unlocked = App.unlockAccount(ownerAddress);
             if (unlocked) {
               try {
+                this.currentOwnerAddress = ownerAddress;
+                this.currentContractAddress = contractAddress;
                 const deployedFamilyTree = App.familyTreeWrapper.findContract(contractAddress);
                 if(deployedFamilyTree){
                   console.log("deployedFamilyTree = " + deployedFamilyTree)
@@ -248,22 +242,32 @@ var familyTreeWrapper;
       if (window.addEventListener) {
         window.addEventListener('DOMContentLoaded', App.init, false);
       }
-      // $('.alert .close').on('click', function(e) {
-      //   $('#message').hide();
-      // });
-      'use strict';
-      // jQuery('#datetimepicker').datetimepicker({
-      //   timepicker:false,
-      //   formatDate:'DDMMYYYY'
-      //  });
 
+      'use strict';
+      $( "#makeContractButton" ).click(function() {
+        $('#myModal').modal('hide')
+          $('#myModal').on('hide.bs.modal', function () {
+          this.currentOwnerAddress = $('input[name="ownerAddress"]').val();
+          this.currentFirstName = $('input[name="firstName"]').val();
+          this.currentLastName = $('input[name="lastName"]').val();
+          this.currentGender =  $('#gender').find(":selected").text();
+          this.currentDob = $('#dateofbirthpick').val();
+          $('#passwordModal').modal('show')
+        })
+      });
+
+      $( "#makeContractButton" ).click(function() {
+        App.newContract($('input[name="password"]').val())
+      });
+     
       $(function() {
         $('[data-toggle="datepicker"]').datepicker({
-          date: new Date(1972, 5, 27), 
+          date: new Date(1972, 4, 27), 
           startDate: new Date(1900, 5, 27), 
           endDate: new Date(2020, 5, 27), 
           autoHide: true,
           zIndex: 2048,
         });
+        $('#dateofbirthpick').val('05/27/1972')
       });
     })(window, window.document);  

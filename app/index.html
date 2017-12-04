@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-primary" role="alert">
             <h4 class="alert-heading">Family Tree dAPP Application</h4>
             <p>Enter your address and password/passphrase for the purpose of paying gas to create or update the Family Tree.</p>
             <hr>
@@ -19,37 +19,18 @@
         </div>
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTreeModal">  New Family Tree  </button>
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#findTreeModal">Retrieve Family Tree</button>
-        
-        <!-- <form name="my-form" >
-          <div class="input-group">
-            <span class="input-group-addon"><i class="fa fa-user"></i></span>
-            <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address">
-          </div>
-          <div class="input-group">
-            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-            <input id="password" type="password" class="form-control" name="password" placeholder="Account Password" value="pass123">
-          </div>
-          <div class="input-group">
-            <span class="input-group-addon"><i class="fa fa-user"></i></span>
-            <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
-          </div>
-          
-          <p></p>
-        
-          <input id="makeContractButton" type="button" value="Create" class="btn btn-primary">
-          <input id="findContractButton" type="button" value="Retrieve" class="btn btn-primary">
-          <input id="killContractButton" type="button" value="Remove Contract" class="btn btn-primary">
-        </form> -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#killTreeModal"> Remove Family Tree </button>
+
         <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>        
         <div class="tree" id="FamilyTree"></div>
 
         <!-- Create New Family Tree Contract Modal -->
-        <div class="modal fade" tabindex="-1" id="newTreeModal" role="dialog"  aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal fade" tabindex="-1" id="newTreeModal" role="dialog"  aria-labelledby="modalheader" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <!-- Modal content-->
             <div class="modal-content">
               <div class="modal-header alert alert-primary" role="alert">
-                  <h4 class="modal-title alert-heading">Create New Family Tree</h4>
+                  <h4 id="modalheader" class="modal-title alert-heading">Create New Family Tree</h4>
                   <button type="button" class="close" data-dismiss="modal">&times;</button>
               </div>
               <div class="modal-body">
@@ -61,10 +42,6 @@
                   <!-- <div class="input-group">
                     <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                     <input id="password" type="password" class="form-control" name="password" placeholder="Account Password" value="pass123">
-                  </div>
-                  <div class="input-group">
-                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
-                    <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
                   </div> -->
                   <div class="input-group">
                       <span class="input-group-addon"><i class="fa fa-user"></i></span>
@@ -83,13 +60,6 @@
                       </select>
                       <!-- <input id="gender" type="text" class="form-control" name="gender" placeholder="gender"> -->
                   </div>
-
-                  <!-- <div class='input-group'>
-                      <label for="filter-date">Date of Birth</label>
-                      <input id="datetimepicker" type="text"  class="form-control">
-                      <span class="input-group-addon"><span class="fa fa-calendar"></span>
-                      </span>
-                  </div> -->
                   <div class='input-group' id='datetimepicker'>
                       <div class="col">
                         <label for="datepicker" class="col-form-label input-group-addon">Date of Birth</label>
@@ -100,10 +70,6 @@
                     </div>
                   </div>
                   <p></p>
-                
-                 
-                  <!-- <input id="findContractButton" type="button" value="Retrieve" class="btn btn-primary">
-                  <input id="killContractButton" type="button" value="Remove Contract" class="btn btn-primary"> -->
                 </form>
                 <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>  
               </div>
@@ -114,9 +80,92 @@
               </div>
               
             </div>
-          </div>
-
-
+          </div> <!--Model end-->
+          <!-- Retrieve Family Tree Contract Modal -->
+        <div class="modal fade" tabindex="-1" id="retrieveTreeModal" role="dialog"  aria-labelledby="modalheader" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <!-- Modal content-->
+            <div class="modal-content">
+              <div class="modal-header alert alert-primary" role="alert">
+                  <h4 id="modalheader" class="modal-title alert-heading">Retrieve Family Tree</h4>
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body">
+                <form name="retrieve-contract-form" >
+                  <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                    <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address">
+                  </div>
+                  <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                    <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
+                  </div>
+                  <p></p>
+                </form>
+                <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>  
+              </div>
+              <div class="modal-footer">
+                <input id="findContractButton" type="button" value="Retrieve" class="btn btn-primary">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div> <!--Model end-->
+           <!-- Password Modal -->
+        <div class="modal fade" tabindex="-1" id="passwordModal" role="dialog"  aria-labelledby="modalheader" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <!-- Modal content-->
+            <div class="modal-content">
+              <div class="modal-header alert alert-primary" role="alert">
+                  <h4 id="modalheader" class="modal-title alert-heading">Enter Password/Passphrase to unlock account for gas</h4>
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body">
+                <form name="password-form" >
+                  <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    <input id="password" type="password" class="form-control" name="password" placeholder="Account Password" value="pass123">
+                  </div>
+                  <p></p>
+                </form>
+                <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>  
+              </div>
+              <div class="modal-footer">
+                <input id="makeContractButton" type="button" value="Create" class="btn btn-primary">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+              </div>
+              
+            </div>
+          </div> <!--Model end-->
+          <!-- Remove Family Tree Contract Modal -->
+          <div class="modal fade" tabindex="-1" id="removeTreeModal" role="dialog"  aria-labelledby="modalheader" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-header alert alert-primary" role="alert">
+                    <h4 id="modalheader" class="modal-title alert-heading">Remove Family Tree</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                  <form name="retrieve-contract-form" >
+                    <div class="input-group">
+                      <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                      <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address">
+                    </div>
+                    <div class="input-group">
+                      <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                      <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists">
+                    </div>
+                    <p></p>
+                  </form>
+                  <div id = "message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>  
+                </div>
+                <div class="modal-footer">
+                  <input id="killContractButton" type="button" value="Remove" class="btn btn-primary">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div> <!--Model end-->
     </div>
 </body>
 
