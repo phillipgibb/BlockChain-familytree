@@ -245,20 +245,23 @@ var familyTreeStructure;
 
       'use strict';
       $( "#makeContractButton" ).click(function() {
-        $('#myModal').modal('hide')
-          $('#myModal').on('hide.bs.modal', function () {
-          this.currentOwnerAddress = $('input[name="ownerAddress"]').val();
-          this.currentFirstName = $('input[name="firstName"]').val();
-          this.currentLastName = $('input[name="lastName"]').val();
-          this.currentGender =  $('#gender').find(":selected").text();
-          this.currentDob = $('#dateofbirthpick').val();
-          $('#passwordModal').modal('show')
-        })
+        this.currentOwnerAddress = $('input[name="ownerAddress"]').val();
+        this.currentFirstName = $('input[name="firstName"]').val();
+        this.currentLastName = $('input[name="lastName"]').val();
+        this.currentGender =  $('#gender').find(":selected").text();
+        this.currentDob = $('#dateofbirthpick').val();
+  //      $('#newTreeModal').modal('hide')
+
+        $('#newTreeModal').modal('toggle');
+        //  $('#newTreeModal').on('hide.bs.modal', function () {
+        
+          $('#passwordModal').modal('show');
+        //})
       });
 
-      $( "#makeContractButton" ).click(function() {
-        App.newContract($('input[name="password"]').val())
-      });
+      //$( "#makeContractButton" ).click(function() {
+      //  App.newContract($('input[name="password"]').val())
+      //});
      
       $(function() {
         $('[data-toggle="datepicker"]').datepicker({
@@ -268,6 +271,6 @@ var familyTreeStructure;
           autoHide: true,
           zIndex: 2048,
         });
-        $('#dateofbirthpick').val('05/27/1972')
+        $('#dateofbirthpick').val('05/27/1972');
       });
     })(window, window.document);  
