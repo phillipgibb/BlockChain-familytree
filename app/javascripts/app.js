@@ -59,10 +59,38 @@ var familyTreeStructure;
             validPassword: valid
           }
         },
+        app.validateContractData = function(contractData){
+          var errors = [];
+          var valid = true;
+          var validAddress = App.validateAddressField(contractData.currentOwnerAddress).validAddress;
+          if(!validAddress){
+            valid = false;
+            errors.push("Owner Address is empty or invalid");
+          }
+          if(!contractData.currentFirstName){
+            valid = false;
+            errors.push("First Name must be entered");
+          }else if (contractData.currentFirstName.length >   16){
+            valid = false;
+            errors.push("First Name cannot be more than 16 characters");
+          }
+
+          if(!contractData.currentLastName){
+            valid = false;
+            errors.push("Last Name must be entered");
+          }else if (contractData.currentLastName.length >   16){
+            valid = false;
+            errors.push("Last Name cannot be more than 16 characters");
+          }
+          return{
+            validData: valid,
+            errors: errors
+          }
+        },
         app.validateAddressField = function(address){
           console.log(`validating ${address}`)
           var valid = false;
-          if (address.length != 0 && address != "" && ethereum_address.isAddress(address)) {
+          if (address && address.length !== 0 && address !== "" && ethereum_address.isAddress(address)) {
             valid = true;
           }
           
@@ -71,6 +99,7 @@ var familyTreeStructure;
           }
         },
         app.unlockAccount = async function(address, password) {
+          var errors = [];
           web3.personal.unlockAccount(address, password, 10000, function (error, result){
             if(!error){
               return{unlocked:true}
@@ -78,19 +107,22 @@ var familyTreeStructure;
               var str = error.toString();
               if(str.includes("could not decrypt")){
                 console.log("Please enter the valid Passphrase.! " + str);
-                return{unlocked:false}
+                errors.push(`Please enter the valid Passphrase.! ${str}`);
+                return{unlocked:false, errors: errors}
               }else{
-                return{unlocked:false}
+                errors.push(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
+                return{unlocked:false, errors: errors}
                 console.log(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
               }
             }
           });
       }, 
-      app.newContract = async function(password){
+      app.newContract = async function(contractData){
         
         var errors = [];
 
-        var validAddress = App.validateAddressField(this.currentOwnerAddress).validAddress;
+        //var validAddress = App.validateAddressField(this.currentOwnerAddress).validAddress;
+        /*
         if(!validAddress){
           errors.push("Owner Address is empty or invalid");
         }
@@ -105,19 +137,20 @@ var familyTreeStructure;
         
 
         var unlocked = App.unlockAccount(this.currentOwnerAddress, password);
-        if(validPassword && unlocked){
-          await App.familyTreeWrapper.newFamilyTree(this.currentContractAddress,this.currentFirstName, this.currentLastName, this.currentGender, this.currentDob, (function(error, result) {
+        */
+       // if(validPassword && unlocked){
+          await App.familyTreeWrapper.newFamilyTree(contractData.currentContractAddress,contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentDob, (function(error, result) {
             if(!error){
               console.log("Result: " + result)
             }else{
               console.log("Error: " + error)
             }
           }));
-        }else{
+        /*}else{
           errors.push("Password/Passphrase is incorrect for your account address");
           App.displayErrors(errors);
         }
-        
+        */
       },
         app.findContract = async function() {
           console.log("find")
@@ -239,23 +272,45 @@ var familyTreeStructure;
         }
         return app;  
       })();
+
+      'use strict';
+      var contractData = {}
+
       if (window.addEventListener) {
         window.addEventListener('DOMContentLoaded', App.init, false);
       }
 
-      'use strict';
+      $( "#passwordButton" ).click(function() {
+        var validatePassword = App.validatePassword($('input[name="password"]').val());
+        if (!validatePassword.validPassword) {
+          errors.push("Password cannot be empty");
+        }else {
+          var unlockAccount = App.unlockAccount(this.contractData.currentOwnerAddress, $('input[name="password"]').val());
+          if(unlockAccount.unlocked){
+            App.newFamilyTree(contractData);
+          }else{
+            App.displayErrors(unlockAccount.errors);
+          }
+        }
+      });
       $( "#makeContractButton" ).click(function() {
-        this.currentOwnerAddress = $('input[name="ownerAddress"]').val();
-        this.currentFirstName = $('input[name="firstName"]').val();
-        this.currentLastName = $('input[name="lastName"]').val();
-        this.currentGender =  $('#gender').find(":selected").text();
-        this.currentDob = $('#dateofbirthpick').val();
+          contractData.currentOwnerAddress = $('input[name="ownerAddress"]').val();
+          contractData.currentFirstName = $('input[name="firstName"]').val();
+          contractData.currentLastName = $('input[name="lastName"]').val();
+          contractData.currentGender =  $('#gender').find(":selected").text();
+          contractData.currentDob = $('#dateofbirthpick').val();
+          this.contractData = contractData;
   //      $('#newTreeModal').modal('hide')
+        console.log(`currentOwnerAddress ${this.contractData.currentOwnerAddress}`)
 
         $('#newTreeModal').modal('toggle');
         //  $('#newTreeModal').on('hide.bs.modal', function () {
-        
+          var validatedData = App.validateContractData(this.contractData);
+        if(validatedData.validData){
           $('#passwordModal').modal('show');
+        }else{
+          App.displayErrors(validatedData.errors);
+        }
         //})
       });
 
