@@ -1,11 +1,12 @@
 var fs = require('fs');
 var contract = require("truffle-contract");
+import getTransactionReceiptMined from './getTransactionReceiptMined';
 
 export default class  FamilyTreeWrapper {
 
   constructor(web3){
-  this.web3 = web3
-  this.familyTreeABI = [{"constant":false,"inputs":[{"name":"childId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addMother","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"id","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"funeral","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"parentId","type":"int128"},{"name":"childId","type":"int128"}],"name":"hasThisChild","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"fatherId","type":"int128"},{"name":"motherId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addChild","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"childId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addFather","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getNumberOfFamilyMembers","outputs":[{"name":"","type":"int128"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"id","type":"int128"}],"name":"getNode","outputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes18"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"spouseId","type":"int128"},{"name":"motherId","type":"int128"},{"name":"fatherId","type":"int128"},{"name":"dateOfDeath","type":"int128"},{"name":"noOfChildren","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes18"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addFamilyMember","outputs":[{"name":"newId","type":"int128"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"otherSpouseId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addSpouse","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"spouseId","type":"int128"},{"name":"otherSpouseId","type":"int128"}],"name":"divorse","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"id","type":"int128"}],"name":"getFullName","outputs":[{"name":"","type":"bytes18"},{"name":"","type":"bytes18"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"}],"payable":true,"stateMutability":"payable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fromAddress","type":"address"},{"indexed":false,"name":"firstName","type":"bytes18"},{"indexed":false,"name":"lastName","type":"bytes18"}],"name":"FamilyCreated","type":"event"}];
+    this.web3 = web3;
+    this.familyTreeABI = [{"constant":false,"inputs":[{"name":"childId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addMother","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"id","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"funeral","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"parentId","type":"int128"},{"name":"childId","type":"int128"}],"name":"hasThisChild","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"fatherId","type":"int128"},{"name":"motherId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addChild","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"childId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addFather","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getNumberOfFamilyMembers","outputs":[{"name":"","type":"int128"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"id","type":"int128"}],"name":"getNode","outputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes18"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"spouseId","type":"int128"},{"name":"motherId","type":"int128"},{"name":"fatherId","type":"int128"},{"name":"dateOfDeath","type":"int128"},{"name":"noOfChildren","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes18"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addFamilyMember","outputs":[{"name":"newId","type":"int128"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"otherSpouseId","type":"int128"},{"name":"firstName","type":"bytes16"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"},{"name":"dateOfDeath","type":"int128"}],"name":"addSpouse","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"spouseId","type":"int128"},{"name":"otherSpouseId","type":"int128"}],"name":"divorse","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"id","type":"int128"}],"name":"getFullName","outputs":[{"name":"","type":"bytes18"},{"name":"","type":"bytes18"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"firstName","type":"bytes18"},{"name":"lastName","type":"bytes16"},{"name":"gender","type":"bytes6"},{"name":"dateOfBirth","type":"int128"}],"payable":true,"stateMutability":"payable","type":"constructor"},{"payable":true,"stateMutability":"payable","type":"fallback"},{"anonymous":false,"inputs":[{"indexed":false,"name":"fromAddress","type":"address"},{"indexed":false,"name":"firstName","type":"bytes18"},{"indexed":false,"name":"lastName","type":"bytes18"}],"name":"FamilyCreated","type":"event"}];
   this.familyTreeByteCode = "0x6060604052604051608080620014698339810160405280805191906020018051919060200180519190602001805191506200003b905062000394565b62000045620003a6565b60008054600160a060020a03191633600160a060020a0316179055600280546001608060020a0319166001179055610160604051908101604090815260008083526001607060020a031989166020808501919091526001608060020a03198916928401929092527fffffffffffff00000000000000000000000000000000000000000000000000008716606084015260001960808401819052600f87900b60a085015260c0840182905260e08401819052610100840152610120830181905261014083018590528052600190529050807fa6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb4981518154600f9190910b6001608060020a03166001608060020a031990911617815560208201516001820180546001609060020a0319166e01000000000000000000000000000090920491909117905560408201516002820180546001609060020a0319166e01000000000000000000000000000090920491909117905560608201516002820180547a010000000000000000000000000000000000000000000000000000909204720100000000000000000000000000000000000002609060020a60c060020a03199092169190911790556080820151600382018054600f9290920b6001608060020a03166001608060020a031990921691909117905560a08201518160030160106101000a8154816001608060020a030219169083600f0b6001608060020a0316021790555060c0820151600482018054600f9290920b6001608060020a03166001608060020a031990921691909117905560e08201518160040160106101000a8154816001608060020a030219169083600f0b6001608060020a03160217905550610100820151600582018054600f9290920b6001608060020a03166001608060020a0319909216919091179055610120820151816006015561014082015181600701908051620003159291602001906200040b565b50506000547fdbe9b6cf797a9e3afb04dda5c8eae8de7ea7c611a5234cdf510daaf618b34b909150600160a060020a03168787604051600160a060020a0390931683526001607060020a031990911660208301526001608060020a0319166040808301919091526060909101905180910390a1505050505050620004f7565b60206040519081016040526000815290565b6101606040519081016040908152600080835260208301819052908201819052606082018190526080820181905260a0820181905260c0820181905260e08201819052610100820181905261012082015261014081016200040662000394565b905290565b82805482825590600052602060002090600101600290048101928215620004bb5791602002820160005b838211156200048457835183826101000a8154816001608060020a030219169083600f0b6001608060020a031602179055509260200192601001602081600f0104928301926001030262000435565b8015620004b95782816101000a8154906001608060020a030219169055601001602081600f0104928301926001030262000484565b505b50620004c9929150620004cd565b5090565b620004f491905b80821115620004c95780546001608060020a0319168155600101620004d4565b90565b610f6280620005076000396000f3006060604052600436106100b95763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416631107ea9781146100bb5780632bbcf8a6146101065780632ce5cac1146101275780633a6fd3d91461015c57806341c0e1b5146101ad5780634b36cc82146101c057806360fbf7451461020b5780636d244b69146102375780636e410505146102ce578063a490dd8a14610316578063c357b11114610361578063f713dda014610382575b005b34156100c657600080fd5b6100b9600435600f90810b906001608060020a031960243581169160443590911690600160d060020a03196064351690608435810b9060a435900b6103c7565b341561011157600080fd5b6100b9600435600f90810b90602435900b610484565b341561013257600080fd5b610148600435600f90810b90602435900b6104bc565b604051901515815260200160405180910390f35b341561016757600080fd5b6100b9600435600f90810b90602435810b906001608060020a031960443581169160643590911690600160d060020a0319608435169060a435810b9060c435900b6106ac565b34156101b857600080fd5b6100b961084d565b34156101cb57600080fd5b6100b9600435600f90810b906001608060020a031960243581169160443590911690600160d060020a03196064351690608435810b9060a435900b61088e565b341561021657600080fd5b61021e610904565b604051600f91820b90910b815260200160405180910390f35b341561024257600080fd5b610250600435600f0b61090e565b6040516dffffffffffffffffffffffffffff19998a168152979098166020880152600160d060020a0319909516604080880191909152600f94850b850b606088015292840b840b608087015290830b830b60a0860152820b820b60c085015291810b900b60e083015261010082019290925261012001905180910390f35b34156102d957600080fd5b61021e6dffffffffffffffffffffffffffff1960043581169060243516600160d060020a031960443516606435600f90810b90608435900b610aff565b341561032157600080fd5b6100b9600435600f90810b906001608060020a031960243581169160443590911690600160d060020a03196064351690608435810b9060a435900b610bfd565b341561036c57600080fd5b6100b9600435600f90810b90602435900b610c72565b341561038d57600080fd5b61039b600435600f0b610cbf565b6040516dffffffffffffffffffffffffffff199283168152911660208201526040908101905180910390f35b60006103e36001608060020a0319808816908716868686610aff565b600f88810b810b600090815260016020819052604080832060040180546001608060020a03908116608060020a88880b928316021790915590930b82529190206007018054929350919081016104398382610e6a565b916000526020600020906002918282040191900660100289909190916101000a8154816001608060020a030219169083600f0b6001608060020a031602179055505050505050505050565b600f91820b820b600090815260016020526040902060040180549190920b6001608060020a03166001608060020a0319909116179055565b60006104c6610ea3565b600f84810b900b6000908152600160205260408082208291610160905190810160409081528254600f90810b810b810b835260018401546e0100000000000000000000000000009081026dffffffffffffffffffffffffffff19908116602080870191909152600287015492830290911684860152720100000000000000000000000000000000000090910460d060020a02600160d060020a0319166060850152600385015480830b830b830b6080860152608060020a90819004830b830b830b60a0860152600486015480840b840b840b60c087015204820b820b820b60e08501526005850154820b820b90910b610100840152600684015461012084015260078401805493949361014086019391929091828202909101905190810160405280929190818152602001828054801561064557602002820191906000526020600020906000905b82829054906101000a9004600f0b600f0b81526020019060100190602082600f0104928301926001038202915080841161060e5790505b50505050508152505092508261012001519150600090505b8181101561069e5784600f0b836101400151828151811061067a57fe5b90602001906020020151600f0b141561069657600193506106a3565b60010161065d565b600093505b50505092915050565b60006106c86001608060020a0319808816908716868686610aff565b90506106d488826104bc565b1515610785576001600089600f0b600f0b815260200190815260200160002060070180548060010182816107089190610e6a565b506000918252602080832060028084049091018054919093066010026101000a6001608060020a0381810219909216600f87810b84811693909302919091179094558c840b80850b865260019384905260408087206006018054909501909455930b8452922060050180546001608060020a031916919092161790555b61078f87826104bc565b1515610843576001600088600f0b600f0b815260200190815260200160002060070180548060010182816107c39190610e6a565b506000918252602080832060028084049091018054600f87810b6001608060020a03818116601096909806959095026101000a96870296850219909216959095179091558c840b840b855260019283905260408086206006018054909401909355830b845292206004018054918a900b8316608060020a02919092161790555b5050505050505050565b6000543373ffffffffffffffffffffffffffffffffffffffff9081169116141561088c5760005473ffffffffffffffffffffffffffffffffffffffff16ff5b565b60006108aa6001608060020a0319808816908716868686610aff565b600f88810b810b600090815260016020819052604080832060050180546001608060020a0319166001608060020a0387870b9081169190911790915590930b82529190206007018054929350919081016104398382610e6a565b600254600f0b5b90565b6000806000806000806000806000610924610ea3565b600160008c600f0b600f0b815260200190815260200160002061016060405190810160409081528254600f90810b810b810b835260018401546e0100000000000000000000000000009081026dffffffffffffffffffffffffffff19908116602080870191909152600287015492830290911684860152720100000000000000000000000000000000000090910460d060020a02600160d060020a0319166060850152600385015480830b830b830b6080860152608060020a90819004830b830b830b60a0860152600486015480840b840b840b60c087015204820b820b820b60e08501526005850154820b820b90910b6101008401526006840154610120840152600784018054939493610140860193919290918282029091019051908101604052809291908181526020018280548015610aa557602002820191906000526020600020906000905b82829054906101000a9004600f0b600f0b81526020019060100190602082600f01049283019260010382029150808411610a6e5790505b50505050508152505090508060200151816040015182606001518360a0015184608001518560e001518661010001518760c00151886101200151995099509950995099509950995099509950509193959799909294969850565b60028054600f81810b6001818101830b6001608060020a039081166001608060020a031995861617865591830b830b600090815260208290526040812091820180546e010000000000000000000000000000808e0471ffffffffffffffffffffffffffffffffffff1992831617909255838801805460d060020a8d0472010000000000000000000000000000000000000277ffffffffffff00000000000000000000000000000000000019948f049190931617929092161790556003820180546004840180548a880b871690891617905589860b8516608060020a02908516179095169092179093556006830155915490910b905095945050505050565b6000610c196001608060020a0319808816908716868686610aff565b600f97880b80890b600090815260016020526040808220600390810180546001608060020a03199081166001608060020a03978f0b888116919091179092559c0b83529120018054909916911617909655505050505050565b600f91820b820b600090815260016020526040808220600390810180546001608060020a036001608060020a0319918216811790925594860b90950b835291200180549091169091179055565b600080610cca610ea3565b6001600085600f0b600f0b815260200190815260200160002061016060405190810160409081528254600f90810b810b810b835260018401546e0100000000000000000000000000009081026dffffffffffffffffffffffffffff19908116602080870191909152600287015492830290911684860152720100000000000000000000000000000000000090910460d060020a02600160d060020a0319166060850152600385015480830b830b830b6080860152608060020a90819004830b830b830b60a0860152600486015480840b840b840b60c087015204820b820b820b60e08501526005850154820b820b90910b6101008401526006840154610120840152600784018054939493610140860193919290918282029091019051908101604052809291908181526020018280548015610e4b57602002820191906000526020600020906000905b82829054906101000a9004600f0b600f0b81526020019060100190602082600f01049283019260010382029150808411610e145790505b5050505050815250509050806020015181604001519250925050915091565b815481835581811511610e9e576001016002900481600101600290048360005260206000209182019101610e9e9190610f06565b505050565b6101606040519081016040908152600080835260208301819052908201819052606082018190526080820181905260a0820181905260c0820181905260e0820181905261010082018190526101208201526101408101610f01610f24565b905290565b61090b91905b80821115610f205760008155600101610f0c565b5090565b602060405190810160405260008152905600a165627a7a723058202ac3809027e6ae4aac3b7c3acb4952aecb3bf8bb9c4809bfa25e73f31cae33c60029";
   
 } 
@@ -32,17 +33,15 @@ estimateGas (params) {
 }
 
   findContract(contractAddress) {
-    console.log(contractAddress);
     var contract = this.web3.eth.contract(this.familyTreeABI);
     var contractInstance = contract.at(contractAddress);
-    console.log("deployedContract: " + contractInstance)
     return contractInstance;  
   }
 
   // We need to wait until any miner has included the transaction
   // in a block to get the address of the contract
   //this method seems to be out of scope otherwise I would use it
-  waitForContractToBeMined(contract){
+ /* waitForContractToBeMined(contract){
     console.log('waiting for contract to be mined');
     const receipt = web3.eth.getTransactionReceipt(contract.transactionHash);
     // If no receipt, try again in 1s
@@ -53,30 +52,80 @@ estimateGas (params) {
     } else {
         // The transaction was mined, we can retrieve the contract address
         console.log('contract address: ' + receipt.contractAddress);
+        return receipt.contractAddress;
     }
   }
 
-  
-  hexEncode(string){
-    var hex, i;
-    var result = "";
-    for (i=0; i<this.length; i++) {
-        hex = this.charCodeAt(i).toString(16);
-        result += ("000"+hex).slice(-4);
+  getTransactionReceiptMined(txHash, interval) {
+    const self = web3.eth;
+    const transactionReceiptAsync = function (resolve, reject) {
+      self.getTransactionReceipt(txHash, (error, receipt) => {
+        if (error) {
+          reject(error);
+        } else if (receipt == null) {
+          setTimeout(
+            () => transactionReceiptAsync(resolve, reject),
+            interval ? interval : 500);
+        } else {
+          resolve(receipt);
+        }
+      });
+    };
+
+    if (Array.isArray(txHash)) {
+      return Promise.all(txHash.map(
+        oneTxHash => self.getTransactionReceiptMined(oneTxHash, interval)));
+    } else if (typeof txHash === "string") {
+      return new Promise(transactionReceiptAsync);
+    } else {
+      throw new Error("Invalid Type: " + txHash);
     }
-    return result
-  }
+  };
+*/
+
+
+  // hexEncode(string){
+  //   var hex, i;
+  //   var result = "";
+  //   for (i=0; i<this.length; i++) {
+  //       hex = this.charCodeAt(i).toString(16);
+  //       result += ("000"+hex).slice(-4);
+  //   }
+  //   return result
+  // }
 
   async newFamilyTree(address, firstName, lastName, gender, dob){
       this.deployedContract = await this.familyTreeContract.new(firstName, lastName, gender, dob, {from: address, gas: 3000000, data: this.familyTreeByteCode}, (contractError, contractResult) => {
       if (!contractError && contractResult) {
-        console.log('contract address: ' + contractResult.contractAddress);
-        console.log('contractResult: ' + contractResult);
+        if(!contractResult.contractAddress){
+          App.showMessage('Please wait for Contract to be Mined ...', 'info');
+          getTransactionReceiptMined(contractResult.transactionHash, 500).then(function(receipt){
+            // console.log('contract address1: ' + receipt.contractAddress);
+            var message = "Contract Address: <b>" + receipt.contractAddress + "</b>";
+            message += "<p/>"
+            message += "Transaction Hash: " + receipt.transactionHash;
+            App.setNewContract(address, receipt.contractAddress);
+            App.showMessage(message, 'success');
+            return receipt;
+          } );
+        }else{
+          // console.log('contract address: ' + contractResult.contractAddress);
+          // console.log('contractResult: ' + contractResult);
+          var message = "Contract Address: <b>" + contractResult.contractAddress + "</b>";
+          message += "<p/>"
+          message += "Transaction Hash: " + contractResult.transactionHash;
+          App.setNewContract(address, contractResult.contractAddress);
+          App.showMessage(message, 'success');
+          return contractResult;
+        }
       }else if(contractError){
-        console.log("contractError: " + contractError);
+        App.showMessage("Contract Creation Error: " + contractError, 'danger');
+        // console.log("contractError: " + contractError);
+        return contractError;
       }
     });
-    //console.log("deployedContract: " + this.deployedContract)
+   return this.deployedContract;
   }
 
+  
 }

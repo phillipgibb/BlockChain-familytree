@@ -17,7 +17,7 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="container justify-content-center">
     <div class="alert alert-primary" role="alert">
       <h4 class="alert-heading">
         Family Tree dAPP Application
@@ -30,12 +30,20 @@
         Make sure you keep the Contract Address safe so that it can be retrieved later.
       </p>
     </div>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTreeModal">New Family Tree
-    </button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#findTreeModal">Retrieve Family Tree</button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#killTreeModal">Remove Family Tree</button>
+    <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Family Tree button groups">
+      <div class="btn-group mr-2" role="group" aria-label="First group">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTreeModal">New Family Tree</button>
+      </div>
+      <div class="btn-group mr-2" role="group" aria-label="Second group">  
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#retrieveTreeModal">Retrieve Family Tree</button>
+      </div>
+      <div class="btn-group" role="group" aria-label="Thrird group">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#killTreeModal">Remove Family Tree</button>
+      </div>
+    </div>
+    <p></p>
     <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
-    <div class="tree" id="FamilyTree"></div>
+    <div class="tree" id="FamilyTreeDisplay"></div>
     <!-- Create New Family Tree Contract Modal -->
     <div class="modal fade" tabindex="-1" id="newTreeModal" role="dialog" aria-labelledby="modalheader" aria-hidden="true">
       <div class="modal-dialog">
@@ -88,11 +96,10 @@
                 </div>
               </div>
             </form>
-            <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
           </div>
           <div class="modal-footer">
             <input id="makeContractButton" type="button" value="Create" class="btn btn-primary" />
-            <button type="button" class="btn btn-secondary" data-dismiss="retrieveTreeModal">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -111,19 +118,18 @@
           </div>
           <div class="modal-body">
             <form name="retrieve-contract-form">
-              <div class="input-group">
+              <!-- <div class="input-group">
                 <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address" />
-              </div>
+              </div> -->
               <div class="input-group">
                 <input id="contractAddress" type="text" class="form-control" name="contractAddress" placeholder="Contract Address, if exists"
                 />
               </div>
             </form>
-            <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
           </div>
           <div class="modal-footer">
             <input id="findContractButton" type="button" value="Retrieve" class="btn btn-primary" />
-            <button type="button" class="btn btn-secondary" data-dismiss="retrieveTreeModal">Close</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
@@ -147,7 +153,6 @@
                 />
               </div>
             </form>
-            <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
           </div>
           <div class="modal-footer">
             <input id="passwordButton" type="button" value="Enter" class="btn btn-primary" />
@@ -178,7 +183,6 @@
                 />
               </div>
             </form>
-            <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
           </div>
           <div class="modal-footer">
             <input id="killContractButton" type="button" value="Remove" class="btn btn-primary" />

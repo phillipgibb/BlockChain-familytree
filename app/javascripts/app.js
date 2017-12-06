@@ -1,18 +1,18 @@
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
+
 var ethereum_address = require('ethereum-address');
-
 var familyTreeWrapper;
-
-var currentOwnerAddress, currentContractAddress, currentFirstName, currentLastName, currentGender, currentDob;
-
+var currentOwnerAddress, currentContractAddress;
 var familyTreeStructure;
 
 (function(window, document,undefined){
-  
+
     window.App = (function(){    
+
       var app = { };
+      
       app.init = function() {
         // Checking if Web3 has been injected by the browser (Mist/MetaMask)
         if (typeof web3 !== 'undefined') {
@@ -30,12 +30,14 @@ var familyTreeStructure;
         var self = this;
         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
         this.familyTreeWrapper.initialize();
-         
+        this.familyTreeStructure = new Map();
+
        // document.getElementById('makeContractButton').addEventListener('click',App.newContract,false);
-        document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
+       // document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
         document.getElementById('killContractButton').addEventListener('click',App.destroyContract,false);
       },
         app.destroyContract =  function(){
+          App.clearMessages();
            //deployedFamilyTree.kill.sendTransaction({from:contractAddress});
         },
         app.error = function(errorString){
@@ -82,6 +84,15 @@ var familyTreeStructure;
             valid = false;
             errors.push("Last Name cannot be more than 16 characters");
           }
+          if(!contractData.currentDob){
+            valid = false;
+            errors.push("Date of Birth is incorect");
+          }else{
+            var date = new Date(contractData.currentDob);
+            contractData.currentDob = date.getDate() + date.getMonth() + date.getFullYear();
+          }
+
+
           return{
             validData: valid,
             errors: errors
@@ -99,28 +110,26 @@ var familyTreeStructure;
           }
         },
         app.unlockAccount = async function(address, password) {
-          var errors = [];
-          web3.personal.unlockAccount(address, password, 10000, function (error, result){
+          
+          await web3.personal.unlockAccount(address, password, 10000, function (error, result) {
+            var errors = [];
             if(!error){
-              return{unlocked:true}
+              errors.push(`Account ${address} will be unlocked for 10 seconds`);
             }else{
               var str = error.toString();
               if(str.includes("could not decrypt")){
-                console.log("Please enter the valid Passphrase.! " + str);
                 errors.push(`Please enter the valid Passphrase.! ${str}`);
-                return{unlocked:false, errors: errors}
               }else{
                 errors.push(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
-                return{unlocked:false, errors: errors}
-                console.log(str + `for address: ${web3.eth.coinbase} and passphrase ${passphrase}`);
               }
+              App.displayErrors(errors);
             }
           });
       }, 
       app.newContract = async function(contractData){
         
         var errors = [];
-
+        App.clearMessages();
         //var validAddress = App.validateAddressField(this.currentOwnerAddress).validAddress;
         /*
         if(!validAddress){
@@ -139,13 +148,14 @@ var familyTreeStructure;
         var unlocked = App.unlockAccount(this.currentOwnerAddress, password);
         */
        // if(validPassword && unlocked){
-          await App.familyTreeWrapper.newFamilyTree(contractData.currentContractAddress,contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentDob, (function(error, result) {
-            if(!error){
-              console.log("Result: " + result)
-            }else{
-              console.log("Error: " + error)
-            }
-          }));
+        const ownerAddress = document.getElementById('ownerAddress').value;
+          this.familyTreeWrapper.newFamilyTree(contractData.currentOwnerAddress,contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentDob, (function(error, result) {
+          if(!error){
+            console.log(">>>>>>>>>>>Result: " + result)
+          }else{
+            console.log("Error: " + error)
+          }
+        }));
         /*}else{
           errors.push("Password/Passphrase is incorrect for your account address");
           App.displayErrors(errors);
@@ -154,32 +164,31 @@ var familyTreeStructure;
       },
         app.findContract = async function() {
           console.log("find")
-          const ownerAddress = document.getElementById('ownerAddress').value;
+          // const ownerAddress = document.getElementById('ownerAddress').value;
           const contractAddress = document.getElementById('contractAddress').value;
           var errors = [];
-
-          if(!App.validateAddressField(ownerAddress).validAddress){
-            errors.push("Owner Address is empty or invalid");
-          }
+          App.clearMessages();
+          // if(!App.validateAddressField(ownerAddress).validAddress){
+          //   errors.push("Owner Address is empty or invalid");
+          // }
 
           if(!App.validateAddressField(contractAddress).validAddress){
             errors.push("Contract Address is empty or invalid");
           }
           if(errors.length === 0){
-            var unlocked = App.unlockAccount(ownerAddress);
-            if (unlocked) {
+            // var unlocked = App.unlockAccount(ownerAddress);
+            // if (unlocked) {
               try {
-                this.currentOwnerAddress = ownerAddress;
-                this.currentContractAddress = contractAddress;
+                // this.currentOwnerAddress = ownerAddress;
+                // this.currentContractAddress = contractAddress;
                 const deployedFamilyTree = App.familyTreeWrapper.findContract(contractAddress);
                 if(deployedFamilyTree){
-                  console.log("deployedFamilyTree = " + deployedFamilyTree)
                   var number = await deployedFamilyTree.getNumberOfFamilyMembers.call((function(error, result) {
                    if(!error){
                      console.log(`Found ${result} family members`)
                      for (var i = 0; i < result; i++) {
                        console.log(`Family member Nr: ${i}`)
-                         App.getNode(deployedFamilyTree,i);
+                         App.getNode(deployedFamilyTree,i, result);
                        }
                      }else{
                       console.log(error);
@@ -195,14 +204,36 @@ var familyTreeStructure;
                 errors.push("Cannot locate the contract");
                 console.log(err);
               }
-            }else{
-              errors.push("Password/Passphrase is incorrect for your account address");
-            }
           }
  
           if(errors.length != 0){
             App.displayErrors(errors);
           }
+        },
+        app.clearMessages = function(){
+          $('#message').hide();
+          var error_element = $('#message');
+          error_element.text("");
+        },
+        app.setNewContract = function(address, contractAddress){
+          this.currentOwnerAddress = address;
+          this.currentContractAddress = contractAddress;
+          return;
+        },
+        app.showMessage = function(message, type){
+          var str = "";
+          var error_element = $('#message')
+          error_element.html("");
+          $('#message').show();
+          error_element.html(message);
+          $('#message').removeClass('fade')
+          $("#message").removeClass (function (index, className) {
+            return (className.match ((/alert-\S+/g) || []).join(' '));
+          });
+         // $('#message').removeClass('alert-danger')
+          $('#message').addClass('alert-'+type)
+          $("#message").css("display","block");
+          
         },
         app.displayErrors = function(errors){
           var str = "";
@@ -221,17 +252,29 @@ var familyTreeStructure;
           errors = []
 
         },
+          
+        app.hexDecode = function(hexx) {
+          var hex = hexx.toString(); //force conversion
+          var str = '';
+          for (var i = 0; i < hex.length; i += 2){
+
+            str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+          }
+          return str.replace(/\u0000/g,'').trim();
+        },
         
-        app.getNode = async function(deployedFamilyTree, index){
+        app.getNode = async function(deployedFamilyTree, index, nrOfMembers){
           var node = await deployedFamilyTree.getNode.call(index, function(error, result){
             if(!error){
-                console.log(`Family Node ${index} = [${result}]`)
+              App.familyTreeStructure.set(index, App.hexDecode(result[index]));
+              console.log(`Family Node ${index} = [${result}]`);
+              if((index+1).toString() === nrOfMembers.toString()){
+                App.makeTree();
+              }
             }else{
-              document.getElementById('message').value = error;
-              $('#message').show();
+             App.showMessage(error, 'danger');
             }
-            })
-            console.log("node: " + node)
+            });
         },
   
         app.setStatus = function(message) {
@@ -254,21 +297,22 @@ var familyTreeStructure;
             self.setStatus("Error getting balance; see log.");
           });
         },
-        app.makeTree = function (array) {
+        app.makeTree = function () {
           // Create the list element:
           var list = document.createElement('ul')
-        
-          for (var i = 0; i < array.length; i++) {
+          
+          for (var [key, value] of App.familyTreeStructure) {
+            
             // Create the list item:
             var item = document.createElement('li')
         
             // Set its contents:
-            item.appendChild(document.createTextNode(array[i]))
+            item.appendChild(document.createTextNode(value))
         
             // Add it to the list:
             list.appendChild(item)
           }
-          document.getElementById('FamilyTree').appendChild(list)
+          document.getElementById('FamilyTreeDisplay').appendChild(list)
         }
         return app;  
       })();
@@ -276,30 +320,71 @@ var familyTreeStructure;
       'use strict';
       var contractData = {}
 
+
+      $('#retrieveTreeModal').on('show.bs.modal', function() {
+        // if(currentOwnerAddress){
+        //   $("#ownerAddress").val(this.currentOwnerAddress);
+        // }
+        if(currentContractAddress){
+          $("#contractAddress").val(currentContractAddress);
+        }
+      });
       if (window.addEventListener) {
         window.addEventListener('DOMContentLoaded', App.init, false);
       }
 
+      $( "#findContractButton" ).click(function() {
+        App.findContract();
+        $('#retrieveTreeModal').modal('hide');
+      });
+
       $( "#passwordButton" ).click(function() {
-        var validatePassword = App.validatePassword($('input[name="password"]').val());
+        var validatePassword = App.validatePasswordField($('input[name="password"]').val());
         if (!validatePassword.validPassword) {
           errors.push("Password cannot be empty");
         }else {
-          var unlockAccount = App.unlockAccount(this.contractData.currentOwnerAddress, $('input[name="password"]').val());
-          if(unlockAccount.unlocked){
-            App.newFamilyTree(contractData);
-          }else{
-            App.displayErrors(unlockAccount.errors);
-          }
+          this.contractData = new Object();
+          this.contractData.currentOwnerAddress =  $('#passwordModal').data('currentOwnerAddress');
+          this.contractData.currentFirstName = $('#passwordModal').data('currentFirstName');
+          this.contractData.currentLastName =  $('#passwordModal').data('currentLastName');
+          this.contractData.currentGender = $('#passwordModal').data('currentGender');
+          this.contractData.currentDob = $('#passwordModal').data('currentDob');
+//
+ /*
+          App.unlockAccount(this.contractData.currentOwnerAddress, $('input[name="password"]').val()).then(function(result) {
+            if(result.unlocked){
+              App.newFamilyTree(contractData);
+            }else{
+              App.displayErrors(result.errors);
+            }
+          });
+*/
+          App.unlockAccount(this.contractData.currentOwnerAddress, $('input[name="password"]').val()).then(function(result){
+            $('#passwordModal').modal('hide');
+            var contractData = new Object();
+            contractData.currentOwnerAddress =  $('#passwordModal').data('currentOwnerAddress');
+            contractData.currentFirstName = $('#passwordModal').data('currentFirstName');
+            contractData.currentLastName =  $('#passwordModal').data('currentLastName');
+            contractData.currentGender = $('#passwordModal').data('currentGender');
+            contractData.currentDob = $('#passwordModal').data('currentDob');
+            App.newContract(contractData).catch(e => {
+              console.log(e);
+          });
+          }, function(error){
+            console.log("error: " + error);
+          }).catch(e => {
+            console.log(e);
+        });
+          
         }
       });
       $( "#makeContractButton" ).click(function() {
-          contractData.currentOwnerAddress = $('input[name="ownerAddress"]').val();
-          contractData.currentFirstName = $('input[name="firstName"]').val();
-          contractData.currentLastName = $('input[name="lastName"]').val();
-          contractData.currentGender =  $('#gender').find(":selected").text();
-          contractData.currentDob = $('#dateofbirthpick').val();
-          this.contractData = contractData;
+        this.contractData = new Object();
+        this.contractData.currentOwnerAddress = $('input[name="ownerAddress"]').val();
+        this.contractData.currentFirstName = $('input[name="firstName"]').val();
+        this.contractData.currentLastName = $('input[name="lastName"]').val();
+        this.contractData.currentGender =  $('#gender').find(":selected").text();
+        this.contractData.currentDob = $('#dateofbirthpick').val();
   //      $('#newTreeModal').modal('hide')
         console.log(`currentOwnerAddress ${this.contractData.currentOwnerAddress}`)
 
@@ -307,6 +392,11 @@ var familyTreeStructure;
         //  $('#newTreeModal').on('hide.bs.modal', function () {
           var validatedData = App.validateContractData(this.contractData);
         if(validatedData.validData){
+          $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
+          $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
+          $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
+          $('#passwordModal').data('currentGender', this.contractData.currentGender);
+          $('#passwordModal').data('currentDob', this.contractData.currentDob);
           $('#passwordModal').modal('show');
         }else{
           App.displayErrors(validatedData.errors);
