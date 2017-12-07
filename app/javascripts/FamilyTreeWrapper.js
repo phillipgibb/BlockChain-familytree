@@ -95,6 +95,7 @@ estimateGas (params) {
   // }
 
   async newFamilyTree(address, firstName, lastName, gender, dob){
+    console.log("DATE OF BIRTH: " + dob);
       this.deployedContract = await this.familyTreeContract.new(firstName, lastName, gender, dob, {from: address, gas: 3000000, data: this.familyTreeByteCode}, (contractError, contractResult) => {
       if (!contractError && contractResult) {
         if(!contractResult.contractAddress){

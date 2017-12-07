@@ -87,10 +87,8 @@ var familyTreeStructure;
           if(!contractData.currentDob){
             valid = false;
             errors.push("Date of Birth is incorect");
-          }else{
-            var date = new Date(contractData.currentDob);
-            contractData.currentDob = date.getDate() + date.getMonth() + date.getFullYear();
           }
+          
 
 
           return{
@@ -262,11 +260,22 @@ var familyTreeStructure;
           }
           return str.replace(/\u0000/g,'').trim();
         },
+
+        app.decodeNode = function(node){
+          var nodeObj = {};
+          nodeObj.firstName = App.hexDecode(node[0]);
+          nodeObj.lastName = App.hexDecode(node[1]);
+          nodeObj.gender = App.hexDecode(node[2]);
+          nodeObj.dob = node[3];
+          nodeObj.dod = node[4];
+          return nodeObj;
+        },
         
         app.getNode = async function(deployedFamilyTree, index, nrOfMembers){
           var node = await deployedFamilyTree.getNode.call(index, function(error, result){
             if(!error){
-              App.familyTreeStructure.set(index, App.hexDecode(result[index]));
+              var decodedNode = App.decodeNode(result);
+              App.familyTreeStructure.set(index, decodedNode);
               console.log(`Family Node ${index} = [${result}]`);
               if((index+1).toString() === nrOfMembers.toString()){
                 App.makeTree();
@@ -299,20 +308,44 @@ var familyTreeStructure;
         },
         app.makeTree = function () {
           // Create the list element:
-          var list = document.createElement('ul')
+          var list = document.createElement('ul');
           
           for (var [key, value] of App.familyTreeStructure) {
             
             // Create the list item:
-            var item = document.createElement('li')
+            var item = document.createElement('li');
         
+            //create link
+            var link = document.createElement('a');
+            link.setAttribute("href", "#");
+
+            // var button = document.createElement('button');
+            // button.setAttribute("type","button");
+            // button.setAttribute("class","btn btn-secondary");
+
+            link.setAttribute("data-toggle", "tooltip");
+            link.setAttribute("data-placement","top");
+            link.setAttribute("data-html","true");
+            // button.setAttribute("value", value.firstName + " " + value.lastName);
+            
+            var nodeString = "First Name: " + value.firstName + "<br>";
+            nodeString += "Last Name    : " + value.lastName + "<br>";
+            nodeString += "Gender       : " + value.gender + "<br>";
+            nodeString += "Date of Birth: " + value.dob + "<br>";
+            if(value.dod > 0){
+              nodeString += "Date of Death: " + value.dod + "<br>";
+            }
+            link.setAttribute("title", nodeString);
             // Set its contents:
-            item.appendChild(document.createTextNode(value))
-        
+            link.appendChild(document.createTextNode(value.firstName + " " + value.lastName));
+            // link.appendChild(button);
+            item.appendChild(link);
+
+
             // Add it to the list:
-            list.appendChild(item)
+            list.appendChild(item);
           }
-          document.getElementById('FamilyTreeDisplay').appendChild(list)
+          document.getElementById('FamilyTreeDisplay').appendChild(list);
         }
         return app;  
       })();
@@ -320,6 +353,10 @@ var familyTreeStructure;
       'use strict';
       var contractData = {}
 
+      $(document).ready(function() {
+        // $('[data-toggle="tooltip"]').tooltip()
+        jQuery("body").tooltip({ selector: '[data-toggle=tooltip]' });
+      })
 
       $('#retrieveTreeModal').on('show.bs.modal', function() {
         // if(currentOwnerAddress){
@@ -384,7 +421,9 @@ var familyTreeStructure;
         this.contractData.currentFirstName = $('input[name="firstName"]').val();
         this.contractData.currentLastName = $('input[name="lastName"]').val();
         this.contractData.currentGender =  $('#gender').find(":selected").text();
-        this.contractData.currentDob = $('#dateofbirthpick').val();
+        var date = new Date($('#dateofbirthpick').val());
+
+        this.contractData.currentDob = date.getDate().toString()+(date.getMonth()+1).toString().padStart(2,"0")+date.getFullYear().toString();
   //      $('#newTreeModal').modal('hide')
         console.log(`currentOwnerAddress ${this.contractData.currentOwnerAddress}`)
 
@@ -395,7 +434,7 @@ var familyTreeStructure;
           $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
           $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
           $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
-          $('#passwordModal').data('currentGender', this.contractData.currentGender);
+          $('#passwordModal').data('currentGender', this.contractData.currentGender.trim());
           $('#passwordModal').data('currentDob', this.contractData.currentDob);
           $('#passwordModal').modal('show');
         }else{
