@@ -3,7 +3,6 @@ pragma solidity ^0.4.15;
 contract FamilyTree {
 	address owner;
 	mapping (int128 => FamilyNode) familyNodes;
-
 	int128 lastNodeId;
 
 	struct FamilyNode {
@@ -44,7 +43,8 @@ contract FamilyTree {
 		FamilyCreated(owner, firstName, lastName);
 	}
 	
-	function addFamilyMember(bytes18 firstName, bytes18 lastName, bytes6 gender, int128 dateOfBirth, int128 dateOfDeath) public returns (int128 newId) {
+	function addFamilyMember( bytes18 firstName, bytes18 lastName, bytes6 gender, int128 dateOfBirth, int128 dateOfDeath) public returns (int128 id) {
+			
 		var node = familyNodes[lastNodeId++];
 		node.firstName = firstName;
 		node.lastName = lastName;

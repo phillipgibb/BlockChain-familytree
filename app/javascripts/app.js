@@ -124,6 +124,19 @@ var familyTreeStructure;
             }
           });
       }, 
+      app.addFamilyMember = async function(contractData){
+
+        var errors = [];
+        App.clearMessages();
+       
+        this.familyTreeWrapper.addFamilyMember(contractData.currentOwnerAddress,contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentDob, (function(error, result) {
+          if(!error){
+            console.log(">>>>>>>>>>>Result: " + result)
+          }else{
+            console.log("Error: " + error)
+          }
+        }));
+      },
       app.newContract = async function(contractData){
         
         var errors = [];
@@ -307,6 +320,7 @@ var familyTreeStructure;
           });
         },
         app.makeTree = function () {
+         $('FamilyTreeDisplay').empty();
           // Create the list element:
           var list = document.createElement('ul');
           
@@ -314,8 +328,21 @@ var familyTreeStructure;
             
             // Create the list item:
             var item = document.createElement('li');
-        
+        //maybe use string rather
             //create link
+            var addSpan = document.createElement('span');
+            var delSpan = document.createElement('span');
+            //<i class="far fa-plus-square"></i>
+            var addIcon =  document.createElement('i');
+            var delIcon =  document.createElement('i');
+            addIcon.setAttribute("class", "far fa-plus-square");
+            addIcon.setAttribute("id", "addIconId_"+key);
+            delIcon.setAttribute("class", "far fa-minus-square");
+            
+            addIcon.setAttribute("id", "delIconId_"+key);
+            //addIcon.onclick = 
+            var div = document.createElement('div');
+
             var link = document.createElement('a');
             link.setAttribute("href", "#");
 
@@ -339,11 +366,24 @@ var familyTreeStructure;
             // Set its contents:
             link.appendChild(document.createTextNode(value.firstName + " " + value.lastName));
             // link.appendChild(button);
-            item.appendChild(link);
 
-
+            addSpan.appendChild(addIcon);
+            delSpan.appendChild(delIcon);
+            div.appendChild(addSpan);
+            div.appendChild(link);
+            div.appendChild(delSpan);
+            item.appendChild(div);
             // Add it to the list:
             list.appendChild(item);
+            delSpan.addEventListener("click", function(){ 
+              $('#delFamilyMemberModal').data('delFromKey', key);
+              $('#delFamilyMemberModal').modal('show');
+            });
+            addSpan.addEventListener("click", function(){ 
+              $('#addFamilyMemberModal').data('addFromKey', key);
+              $('#addFamilyMemberModal').modal('show');
+            });
+            
           }
           document.getElementById('FamilyTreeDisplay').appendChild(list);
         }
@@ -431,16 +471,50 @@ var familyTreeStructure;
         //  $('#newTreeModal').on('hide.bs.modal', function () {
           var validatedData = App.validateContractData(this.contractData);
         if(validatedData.validData){
-          $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
-          $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
-          $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
-          $('#passwordModal').data('currentGender', this.contractData.currentGender.trim());
-          $('#passwordModal').data('currentDob', this.contractData.currentDob);
-          $('#passwordModal').modal('show');
+          // $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
+          // $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
+          // $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
+          // $('#passwordModal').data('currentGender', this.contractData.currentGender.trim());
+          // $('#passwordModal').data('currentDob', this.contractData.currentDob);
+         // $('#passwordModal').modal('show');
+         App.newContract(contractData).catch(e => {
+          console.log(e);
+        });
+
         }else{
           App.displayErrors(validatedData.errors);
         }
         //})
+      });
+      $( "#addFamilyMemberButton" ).click(function() {
+        //ask for owner address if not present
+        this.contractData = new Object();
+        this.contractData.currentOwnerAddress = App.currentOwnerAddress;
+        this.contractData.currentContractAddress = App.currentContractAddress;
+        
+        this.contractData.currentFirstName = $('input[name="add_firstName"]').val();
+        this.contractData.currentLastName = $('input[name="add_lastName"]').val();
+        this.contractData.currentGender =  $('#add_gender').find(":selected").text();
+        this.contractData.currentType =  $('#add_type').find(":selected").text();
+        var date = new Date($('#dateofbirthpick').val());
+
+        this.contractData.currentDob = date.getDate().toString()+(date.getMonth()+1).toString().padStart(2,"0")+date.getFullYear().toString();
+  //      $('#newTreeModal').modal('hide')
+        console.log(`currentOwnerAddress ${this.contractData.currentOwnerAddress}`)
+        console.log(`currentContractAddress ${this.contractData.currentContractAddress}`)
+
+        //   var validatedData = App.validateContractData(this.contractData);
+        // if(validatedData.validData){
+        //   $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
+        //   $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
+        //   $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
+        //   $('#passwordModal').data('currentGender', this.contractData.currentGender.trim());
+        //   $('#passwordModal').data('currentDob', this.contractData.currentDob);
+        //   $('#passwordModal').modal('show');
+        // }else{
+        //   App.displayErrors(validatedData.errors);
+        // }
+        App.addFamilyMember(this.contractData);
       });
 
       //$( "#makeContractButton" ).click(function() {
