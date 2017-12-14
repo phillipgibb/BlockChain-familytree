@@ -15,33 +15,51 @@
 </head>
 
 <body>
-  <div class="container justify-content-center">
-    <div class="alert alert-primary" role="alert">
-      <h4 class="alert-heading">
-        Family Tree dAPP Application
-      </h4>
-      <p>
-        Enter your address and password/passphrase for the purpose of paying gas to create or update the Family Tree.
-      </p>
-      <hr />
-      <p class="mb-0">
-        Make sure you keep the Contract Address safe so that it can be retrieved later.
-      </p>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col align-self-center alert alert-primary border border-primary" role="alert">
+        <h4 align="center" class="alert-heading">
+          The Decentralized Family Tree
+        </h4>
+      </div>
     </div>
-    <div class="btn-toolbar justify-content-center" role="toolbar" aria-label="Family Tree button groups">
-      <div class="btn-group mr-2" role="group" aria-label="First group">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#newTreeModal">New Family Tree</button>
+    <div class="row">
+      <div class="col-4 align-self-center">
+          <p class="text-right">Account Address:</p>
+        </div>
+      <div class="col-sm-8 alert alert-primary border border-primary align-middle" role="alert">
+        <p class="text-left" id="account"></p>
       </div>
-      <div class="btn-group mr-2" role="group" aria-label="Second group">  
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#retrieveTreeModal">Retrieve Family Tree</button>
+    </div>
+    <div class="row">
+      <div class="col-4 align-self-center">
+        <p class="text-right">Amount ETH:</p>
       </div>
-      <div class="btn-group" role="group" aria-label="Thrird group">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#killTreeModal">Remove Family Tree</button>
+      <div class="col-sm-8 alert alert-primary border border-primary align-middle" role="alert">
+        <p class="text-left" id="amount"></p>
+      </div>
+    </div>
+      
+    <div class="row">
+      <div class="col-4"></div>
+      <div class="col-sm-8">
+        <button type="button" class="btn btn-outline-info" data-toggle="modal" data-target="#newTreeModal">New</button>      
+        <button type="button" class="btn btn-outline-info" data-toggle="modal" data-target="#retrieveTreeModal">Load</button>
+        <button type="button" class="btn btn-outline-info" data-toggle="modal" data-target="#killTreeModal">Delete</button>
+        <button class="btn btn-outline-info dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Contracts
+        </button>
+        <div id = "contractListDropdown" class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        </div>
       </div>
     </div>
     <p></p>
     <div id="message" class="alert alert-danger fade in" role="alert" style="display:none;"></div>
-    <div class="tree" id="FamilyTreeDisplay"></div>
+   
+    <div class="row">
+        <div class="col align-self-center alert alert-primary border border-primary" role="alert"></div>
+    </div>
+     <div class="tree" id="FamilyTreeDisplay"></div>
     <!-- Create New Family Tree Contract Modal -->
     <div class="modal fade" tabindex="-1" id="newTreeModal" role="dialog" aria-labelledby="modalheader" aria-hidden="true">
       <div class="modal-dialog">
@@ -55,9 +73,6 @@
           </div>
           <div class="modal-body">
             <form name="new-contract-form">
-              <div class="input-group">
-                <input id="ownerAddress" type="text" class="form-control" name="ownerAddress" placeholder="Owner Address" />
-              </div>
               <!-- <div class="input-group">
                   <span class="input-group-addon"><i class="fa fa-lock"></i></span>
                   <input id="password" type="password" class="form-control" name="password" placeholder="Account Password" value="pass123">
@@ -199,10 +214,10 @@
           <div class="modal-body">
             <form name="add-family-member-form">
               <div class="input-group">
-                <input id="add_firstName" type="text" class="form-control" name="firstName" placeholder="First Name of Family Member" />
+                <input id="add_firstName" type="text" class="form-control" name="add_firstName" placeholder="First Name of Family Member" />
               </div>
               <div class="input-group">
-                <input id="add_lastName" type="text" class="form-control" name="lastName" placeholder="Last Name of Family Member" />
+                <input id="add_lastName" type="text" class="form-control" name="add_lastName" placeholder="Last Name of Family Member" />
               </div>
               <div class="input-group">
                 <select class="form-control" id="add_type">
@@ -225,7 +240,7 @@
                 </div>
                 <div class="col">
                   <span class="input-group-addon">
-                    <input type="text" id="dateofbirthpick" class="form-control" data-toggle="datepicker" />
+                    <input type="text" id="add_dateofbirthpick" class="form-control" data-toggle="datepicker" />
                   </span>
                 </div>
               </div>
