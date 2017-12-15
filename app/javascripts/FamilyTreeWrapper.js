@@ -106,7 +106,7 @@ estimateGas (params) {
             var message = "Contract Address: <b>" + receipt.contractAddress + "</b>";
             message += "<p/>"
             message += "Transaction Hash: " + receipt.transactionHash;
-            App.setNewContract(address, receipt.contractAddress);
+            App.setNewContract(receipt.contractAddress);
             App.showMessage(message, 'success');
             return receipt;
           } );
@@ -116,7 +116,7 @@ estimateGas (params) {
           var message = "Contract Address: <b>" + contractResult.contractAddress + "</b>";
           message += "<p/>"
           message += "Transaction Hash: " + contractResult.transactionHash;
-          App.setNewContract(address, contractResult.contractAddress);
+          App.setNewContract(contractResult.contractAddress);
           App.showMessage(message, 'success');
           return contractResult;
         }
