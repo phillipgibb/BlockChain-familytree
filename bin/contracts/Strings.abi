@@ -1,0 +1,1 @@
+[{"constant":true,"inputs":[{"name":"_bytes6","type":"bytes32"}],"name":"bytes6ToStr","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":true,"inputs":[{"name":"_bytes18","type":"bytes18"}],"name":"bytes18ToStr","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"pure","type":"function"}]

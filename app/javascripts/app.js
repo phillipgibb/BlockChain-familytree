@@ -1,7 +1,7 @@
 import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
-
+require('orgchart');
 var ethereum_address = require('ethereum-address');
 var familyTreeWrapper;
 
@@ -15,6 +15,7 @@ var familyTreeWrapper;
     var contractAddress;
 
     var familyTreeStructure;
+    var partnerships;
 
     app.init = function () {
       // Checking if Web3 has been injected by the browser (Mist/MetaMask)
@@ -51,6 +52,7 @@ var familyTreeWrapper;
         this.familyTreeWrapper = new FamilyTreeWrapper(window.web3);
         this.familyTreeWrapper.initialize();
         this.familyTreeStructure = new Map();
+        this.partnerships = new Map();
 
         // document.getElementById('makeContractButton').addEventListener('click',App.newContract,false);
         // document.getElementById('findContractButton').addEventListener('click',App.findContract,false);
@@ -80,10 +82,10 @@ var familyTreeWrapper;
                   txInfo.input;
                   */
                   $("#contractListDropdown").append(`<a class="dropdown-item">${result.contractAddress}</a>`);
-                  $('#contractListDropdown a').on('click', function () {
-                    App.contractAddress = $(this).text();
-                    App.findContract();
-                  });
+                  // $('#contractListDropdown a').on('click', function () {
+                  //   App.contractAddress = $(this).text();
+                  //   App.findContract();
+                  // });
                   console.log("found " + result.contractAddress);
                 } else {
                   console.log(error);
@@ -189,7 +191,7 @@ var familyTreeWrapper;
         var errors = [];
         App.clearMessages();
 
-        this.familyTreeWrapper.addFamilyMember(contractData.currentOwnerAddress, contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentFamilyType, contractData.currentDob, -1, (function (error, result) {
+        this.familyTreeWrapper.addFamilyMember(contractData.addFromId, contractData.currentOwnerAddress, contractData.currentFirstName, contractData.currentLastName, contractData.currentGender, contractData.currentFamilyType, contractData.currentDob, -1, (function (error, result) {
           if (!error) {
             console.log(">>>>>>>>>>>Result: " + result)
           } else {
@@ -301,6 +303,15 @@ var familyTreeWrapper;
         }
         */
       },
+      app.displayNewFamilyTree = function(result){
+        var message = "Contract Address: <b>" + result.contractAddress + "</b>";
+        message += "<p/>"
+        message += "Transaction Hash: " + result.transactionHash;
+        App.setNewContract(result.contractAddress);
+        $("#contractListDropdown").append(`<a class="dropdown-item">${result.contractAddress}</a>`);
+        App.showMessage(message, 'success');
+        App.findContract();
+      },
       app.findContract = async function () {
         console.log("find")
         // const ownerAddress = document.getElementById('ownerAddress').value;
@@ -404,24 +415,52 @@ var familyTreeWrapper;
         nodeObj.lastName = App.hexDecode(node[1]);
         nodeObj.gender = App.hexDecode(node[2]);
         nodeObj.dob = node[3];
-        nodeObj.dod = node[4];
+        nodeObj.spouseId = node[4];
+        nodeObj.dod = node[5];
+        nodeObj.numberOfChildren = node[6];
+        
         return nodeObj;
       },
 
       app.getNode = async function (deployedFamilyTree, index, nrOfMembers) {
         var node = await deployedFamilyTree.getNode.call(index, function (error, result) {
           if (!error) {
-            var decodedNode = App.decodeNode(result);
-            App.familyTreeStructure.set(index, decodedNode);
+            var personNode = App.decodeNode(result);
             console.log(`Family Node ${index} = [${result}]`);
-            if ((index + 1).toString() === nrOfMembers.toString()) {
-              App.makeTree();
+            
+            if(personNode.spouseId){//what if the partnership is divorced?
+              var partnership = [index, personNode.spouseId];
+              if(personNode.getNumberOfFamilyMembers > 0){
+                deployedFamilyTree.getChildren.call(index, function (error, result) {
+                  if (!error) {
+                    var childrenHex = App.hexDecode(personNode.children);
+                    console.log('Found Children: ' + childrenHex);
+                    partnership.children = childrenHex.split(',');
+                    personNode.partnerships = [partnership];//could be more than one - future
+                    App.updateFamilyTreeStructure(index, personNode, nrOfMembers);
+                  }else{
+                    console.log(error);
+                  }
+                });
+                 
+              }else{
+                personNode.partnerships = [partnership];//could be more than one - future
+                App.updateFamilyTreeStructure(index, personNode, nrOfMembers);
+              }
+              
             }
+            
           } else {
             App.showMessage(error, 'danger');
           }
         });
       },
+      app.updateFamilyTreeStructure = function(index, personNode, nrOfMembers){
+        App.familyTreeStructure.set(index, personNode);
+        if ((index + 1).toString() === nrOfMembers.toString()) {
+          App.makeTree();
+        }
+      }
 
       app.setStatus = function (message) {
         var status = document.getElementById("status");
@@ -443,74 +482,83 @@ var familyTreeWrapper;
           self.setStatus("Error getting balance; see log.");
         });
       },
+      app.addNode = function (key, value, list) {
+       // Create the list item:
+        var item = document.createElement('li');
+        
+        //maybe use string rather
+        //create link
+        var addSpan = document.createElement('span');
+        var delSpan = document.createElement('span');
+        //<i class="far fa-plus-square"></i>
+        var addIcon = document.createElement('i');
+        var delIcon = document.createElement('i');
+        addIcon.setAttribute("class", "far fa-plus-square");
+        addIcon.setAttribute("id", "addIconId_" + key);
+        delIcon.setAttribute("class", "far fa-minus-square");
+
+        addIcon.setAttribute("id", "delIconId_" + key);
+        //addIcon.onclick = 
+        var div = document.createElement('div');
+
+        var link = document.createElement('a');
+        link.setAttribute("href", "#");
+        link.setAttribute("class", "btn btn-outline-info");
+        link.setAttribute("data-toggle", "tooltip");
+        link.setAttribute("data-placement", "top");
+        link.setAttribute("data-html", "true");
+
+        var nodeString = "First Name: " + value.firstName + "<br>";
+        nodeString += "Last Name    : " + value.lastName + "<br>";
+        nodeString += "Gender       : " + value.gender + "<br>";
+        nodeString += "Date of Birth: " + value.dob + "<br>";
+        if (value.dod > 0) {
+          nodeString += "Date of Death: " + value.dod + "<br>";
+        }
+        link.setAttribute("title", nodeString);
+        // Set its contents:
+        link.appendChild(document.createTextNode(value.firstName + " " + value.lastName));
+        // link.appendChild(button);
+
+        addSpan.appendChild(addIcon);
+        delSpan.appendChild(delIcon);
+        div.appendChild(addSpan);
+        div.appendChild(link);
+        div.appendChild(delSpan);
+        item.appendChild(div);
+        // Add it to the list:
+        list.appendChild(item);
+        delSpan.addEventListener("click", function () {
+          $('#delFamilyMemberModal').data('delFromId', key);
+          $('#delFamilyMemberModal').modal('show');
+        });
+        addSpan.addEventListener("click", function () {
+          $('#addFamilyMemberModal').data('addFromId', key);
+          $('#addFamilyMemberModal').modal('show');
+        });
+        App.familyTreeStructure.delete(key);
+      },
       app.makeTree = function () {
         console.log("Make tree");//not clearing tree
         $('#FamilyTreeDisplay ul').remove();
 
         // Create the list element:
         var list = document.createElement('ul');
+        list.setAttribute("id","ul-data");
         for (var [key, value] of App.familyTreeStructure) {
-
-          // Create the list item:
-          var item = document.createElement('li');
-          //maybe use string rather
-          //create link
-          var addSpan = document.createElement('span');
-          var delSpan = document.createElement('span');
-          //<i class="far fa-plus-square"></i>
-          var addIcon = document.createElement('i');
-          var delIcon = document.createElement('i');
-          addIcon.setAttribute("class", "far fa-plus-square");
-          addIcon.setAttribute("id", "addIconId_" + key);
-          delIcon.setAttribute("class", "far fa-minus-square");
-
-          addIcon.setAttribute("id", "delIconId_" + key);
-          //addIcon.onclick = 
-          var div = document.createElement('div');
-
-          var link = document.createElement('a');
-          link.setAttribute("href", "#");
-
-          // var button = document.createElement('button');
-          // button.setAttribute("type","button");
-          // button.setAttribute("class","btn btn-secondary");
-
-          link.setAttribute("data-toggle", "tooltip");
-          link.setAttribute("data-placement", "top");
-          link.setAttribute("data-html", "true");
-          // button.setAttribute("value", value.firstName + " " + value.lastName);
-
-          var nodeString = "First Name: " + value.firstName + "<br>";
-          nodeString += "Last Name    : " + value.lastName + "<br>";
-          nodeString += "Gender       : " + value.gender + "<br>";
-          nodeString += "Date of Birth: " + value.dob + "<br>";
-          if (value.dod > 0) {
-            nodeString += "Date of Death: " + value.dod + "<br>";
-          }
-          link.setAttribute("title", nodeString);
-          // Set its contents:
-          link.appendChild(document.createTextNode(value.firstName + " " + value.lastName));
-          // link.appendChild(button);
-
-          addSpan.appendChild(addIcon);
-          delSpan.appendChild(delIcon);
-          div.appendChild(addSpan);
-          div.appendChild(link);
-          div.appendChild(delSpan);
-          item.appendChild(div);
-          // Add it to the list:
-          list.appendChild(item);
-          delSpan.addEventListener("click", function () {
-            $('#delFamilyMemberModal').data('delFromKey', key);
-            $('#delFamilyMemberModal').modal('show');
-          });
-          addSpan.addEventListener("click", function () {
-            $('#addFamilyMemberModal').data('addFromKey', key);
-            $('#addFamilyMemberModal').modal('show');
-          });
-
+          App.addNode(key, value, list);
+          // if(value.partnerships){
+          //   var item = document.createElement('li');
+          //   item.setAttribute("id", "circle");
+          //   list.appendChild(item);
+          // }   
         }
         document.getElementById('FamilyTreeDisplay').appendChild(list);
+        $('#FamilyTreeDisplay').orgchart({
+         // 'chartContainer': '#FamilyTreeDisplay'
+          'data' : $('#ul-data')
+        });
+      //  document.querySelector('#FamilyTreeDisplay').appendChild(orgchart);
       }
     return app;
   })();
@@ -590,19 +638,11 @@ var familyTreeWrapper;
     var date = new Date($('#dateofbirthpick').val());
 
     this.contractData.currentDob = date.getDate().toString() + (date.getMonth() + 1).toString().padStart(2, "0") + date.getFullYear().toString();
-    //      $('#newTreeModal').modal('hide')
     console.log(`currentOwnerAddress ${this.contractData.currentOwnerAddress}`)
 
     $('#newTreeModal').modal('toggle');
-    //  $('#newTreeModal').on('hide.bs.modal', function () {
     var validatedData = App.validateContractData(this.contractData);
     if (validatedData.validData) {
-      // $('#passwordModal').data('currentOwnerAddress', this.contractData.currentOwnerAddress);
-      // $('#passwordModal').data('currentFirstName', this.contractData.currentFirstName);
-      // $('#passwordModal').data('currentLastName', this.contractData.currentLastName);
-      // $('#passwordModal').data('currentGender', this.contractData.currentGender.trim());
-      // $('#passwordModal').data('currentDob', this.contractData.currentDob);
-      // $('#passwordModal').modal('show');
       App.newContract(this.contractData).catch(e => {
         console.log(e);
       });
@@ -623,7 +663,7 @@ var familyTreeWrapper;
     this.contractData = new Object();
     this.contractData.currentOwnerAddress = App.account;
     this.contractData.currentContractAddress = App.contractAddress;
-
+    this.contractData.addFromId = $('#addFamilyMemberModal').data('addFromId');
     this.contractData.currentFirstName = $('input[name="add_firstName"]').val();
     this.contractData.currentLastName = $('input[name="add_lastName"]').val();
     this.contractData.currentGender = $('#add_gender').find(":selected").text();
@@ -631,6 +671,7 @@ var familyTreeWrapper;
     var date = new Date($('#add_dateofbirthpick').val());
 
     this.contractData.currentDob = date.getDate().toString() + (date.getMonth() + 1).toString().padStart(2, "0") + date.getFullYear().toString();
+    this.contractData.currentDod = 0;
     //      $('#newTreeModal').modal('hide')
     //   var validatedData = App.validateContractData(this.contractData);
     // if(validatedData.validData){
@@ -662,4 +703,16 @@ var familyTreeWrapper;
     });
     $('#dateofbirthpick').val('05/27/1972');
   });
+
+  $(function () {
+    $('[data-toggle="add_datepicker"]').datepicker({
+      date: new Date(1972, 4, 27),
+      startDate: new Date(1900, 5, 27),
+      endDate: new Date(2020, 5, 27),
+      autoHide: true,
+      zIndex: 2048,
+    });
+    $('#add_dateofbirthpick').val('05/27/1972');
+  });
+
 })(window, window.document);  

@@ -1,6 +1,15 @@
 /*Now the CSS*/
 * {margin: 0; padding: 0;}
 
+#circle {
+	width: 4px;
+	height: 4px;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+	background: red;
+}
+
 .tree ul {
     padding-top: 20px; position: relative;
 	
@@ -67,7 +76,7 @@ right connector from last child*/
 	border-left: 1px solid #ccc;
 	width: 0; height: 20px;
 }
-
+/* 
 .tree li a{
 	border: 1px solid #ccc;
 	padding: 5px 10px;
@@ -84,7 +93,7 @@ right connector from last child*/
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;
 	-moz-transition: all 0.5s;
-}
+} */
 
 /*Time for some hover effects*/
 /*We will apply the hover effect the the lineage of the element also*/
