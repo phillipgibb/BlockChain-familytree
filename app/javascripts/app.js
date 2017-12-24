@@ -1,10 +1,12 @@
 import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
 import FamilyTreeWrapper from './FamilyTreeWrapper';
-require('orgchart');
 var ethereum_address = require('ethereum-address');
-var familyTreeWrapper;
+//import  svgDraw from './svgDraw';
+import Belay from './belay';
 
+var familyTreeWrapper;
+var belay;
 
 (function (window, document, undefined) {
 
@@ -16,8 +18,12 @@ var familyTreeWrapper;
 
     var familyTreeStructure;
     var partnerships;
+    var connections = [];
 
     app.init = function () {
+       belay = new Belay();
+       belay.init({strokeWidth: 1});
+       belay.set('strokeColor', '#999');
       // Checking if Web3 has been injected by the browser (Mist/MetaMask)
       if (typeof web3 !== 'undefined') {
         console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 balance, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
@@ -428,7 +434,7 @@ var familyTreeWrapper;
             var personNode = App.decodeNode(result);
             console.log(`Family Node ${index} = [${result}]`);
             
-            if(personNode.spouseId){//what if the partnership is divorced?
+            if(personNode.spouseId >= 0){//what if the partnership is divorced?
               var partnership = [index, personNode.spouseId];
               if(personNode.getNumberOfFamilyMembers > 0){
                 deployedFamilyTree.getChildren.call(index, function (error, result) {
@@ -448,6 +454,8 @@ var familyTreeWrapper;
                 App.updateFamilyTreeStructure(index, personNode, nrOfMembers);
               }
               
+            }else{
+              App.updateFamilyTreeStructure(index, personNode, nrOfMembers);
             }
             
           } else {
@@ -482,7 +490,7 @@ var familyTreeWrapper;
           self.setStatus("Error getting balance; see log.");
         });
       },
-      app.addNode = function (key, value, list) {
+      app.addNode = function (key, value) {
        // Create the list item:
         var item = document.createElement('li');
         
@@ -500,7 +508,8 @@ var familyTreeWrapper;
         addIcon.setAttribute("id", "delIconId_" + key);
         //addIcon.onclick = 
         var div = document.createElement('div');
-
+        div.setAttribute("class", "draggable");
+          
         var link = document.createElement('a');
         link.setAttribute("href", "#");
         link.setAttribute("class", "btn btn-outline-info");
@@ -526,8 +535,7 @@ var familyTreeWrapper;
         div.appendChild(link);
         div.appendChild(delSpan);
         item.appendChild(div);
-        // Add it to the list:
-        list.appendChild(item);
+        
         delSpan.addEventListener("click", function () {
           $('#delFamilyMemberModal').data('delFromId', key);
           $('#delFamilyMemberModal').modal('show');
@@ -536,29 +544,61 @@ var familyTreeWrapper;
           $('#addFamilyMemberModal').data('addFromId', key);
           $('#addFamilyMemberModal').modal('show');
         });
-        App.familyTreeStructure.delete(key);
+        App.familyTreeStructure.delete(key); 
+        return item;
       },
       app.makeTree = function () {
+        App.connections = [];
         console.log("Make tree");//not clearing tree
         $('#FamilyTreeDisplay ul').remove();
-
+        var lines = [];
         // Create the list element:
         var list = document.createElement('ul');
-        list.setAttribute("id","ul-data");
+        list.setAttribute("id","ul-data");//tried this for orgchart
         for (var [key, value] of App.familyTreeStructure) {
-          App.addNode(key, value, list);
-          // if(value.partnerships){
-          //   var item = document.createElement('li');
-          //   item.setAttribute("id", "circle");
-          //   list.appendChild(item);
-          // }   
+          var familyMember = App.addNode(key, value);
+          var familyMemberKey = "familyMember_"+key
+          familyMember.setAttribute("id", familyMemberKey);
+          // Add it to the list:
+          list.appendChild(familyMember);
+          if(value.partnerships && value.partnerships.length > 0){
+            var partnershipId = parseFloat(value.partnerships[0][1]);//0 = doing only one partnership right now and 0 = self
+            var partnership = App.addNode(partnershipId, App.familyTreeStructure.get(partnershipId));
+            var partnershipKey = "familyMember_"+partnershipId
+            partnership.setAttribute("id", partnershipKey);
+            // Add it to the list:
+            var partnershipCircle = document.createElement('li');
+            var partnershipCircleDiv = document.createElement('div');
+            partnershipCircleDiv.setAttribute("class", "draggable circle");
+            var circleKey = "partnership_"+key+"_"+partnershipId;
+            partnershipCircle.setAttribute("id", circleKey);
+            partnershipCircle.appendChild(partnershipCircleDiv);
+            list.appendChild(partnershipCircle);
+            list.appendChild(partnership);
+            // belay.on($("#"+familyMemberKey), $("#"+circleKey));
+            // belay.on($("#"+circleKey), $("#"+partnershipKey));
+            App.connections.push({from: familyMemberKey, to: circleKey});
+            App.connections.push({from: circleKey, to: partnershipKey});
+            //these can only be called when list has been added to the tree
+            
+            //add to list of lines to be drawn
+            //line to circle
+            //line from circle
+          }   
+          
         }
         document.getElementById('FamilyTreeDisplay').appendChild(list);
-        $('#FamilyTreeDisplay').orgchart({
-         // 'chartContainer': '#FamilyTreeDisplay'
-          'data' : $('#ul-data')
-        });
-      //  document.querySelector('#FamilyTreeDisplay').appendChild(orgchart);
+        //$("#svg1").attr("height", "0");
+        //$("#svg1").attr("width", "0");
+        for(var connection of App.connections){
+         // connectElements($("#svg1"), $("#path"),$("#"+connection.from).find('div')[0], $("#"+connection.to).find('div')[0]);
+         belay.on($("#"+connection.from).find('div')[0], $("#"+connection.to).find('div')[0]);
+        }
+        // $('#FamilyTreeDisplay').orgchart({
+        //  // 'chartContainer': '#FamilyTreeDisplay'
+        //   'data' : $('#ul-data')
+        // });
+        // document.querySelector('#FamilyTreeDisplay').appendChild(orgchart);
       }
     return app;
   })();
@@ -629,6 +669,9 @@ var familyTreeWrapper;
 
     }
   });
+
+
+
   $("#makeContractButton").click(function () {
     this.contractData = new Object();
     this.contractData.currentOwnerAddress = App.account;
@@ -714,5 +757,6 @@ var familyTreeWrapper;
     });
     $('#add_dateofbirthpick').val('05/27/1972');
   });
+
 
 })(window, window.document);  

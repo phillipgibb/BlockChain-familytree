@@ -1,28 +1,40 @@
 /*Now the CSS*/
 * {margin: 0; padding: 0;}
 
-#circle {
-	width: 4px;
-	height: 4px;
-	-webkit-border-radius: 2px;
-	-moz-border-radius: 2px;
-	border-radius: 2px;
-	background: red;
+.circle {
+    border-radius: 50%;
+    behavior: url(PIE.htc); /* remove if you don't care about IE8 */
+	margin: 13px;
+    width: 12px;
+    height: 12px;
+    padding: 2px;
+
+    background: #fff;
+    border: 1px solid #666;
+    color: #666;
 }
 
-.tree ul {
-    padding-top: 20px; position: relative;
+#svgContainer { 
+	z-index: -10;
+	position:absolute;
+	background-color:silver;
+	opacity: 0.5;
+}
+
+
+.familyTree ul {
+    padding-top: 20px;
 	
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;
 	-moz-transition: all 0.5s;
 }
 
-.tree li {
+.familyTree li {
 	float: left; text-align: center;
 	list-style-type: none;
 	position: relative;
-	padding: 20px 5px 0 5px;
+	padding: 50px 25px 0 5px;
 	
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;

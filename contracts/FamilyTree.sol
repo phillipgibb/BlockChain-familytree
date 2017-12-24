@@ -58,9 +58,8 @@ contract FamilyTree {
 		node.spouseId = -1;
 		node.noOfChildren = 0;
 		FamilyMemberAdded(msg.sender, firstName, lastName, gender);
-		nextNodeId = nextNodeId + 1;
-		numberOfFamilymembers = numberOfFamilymembers + 1;
-		return nextNodeId;
+		numberOfFamilymembers++;
+		return nextNodeId++;
 	}
 
 	function deleteFamilyMember(int128 id) public returns (bool) {
