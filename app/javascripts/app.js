@@ -509,7 +509,7 @@ var belay;
         //addIcon.onclick = 
         var div = document.createElement('div');
         div.setAttribute("class", "draggable");
-          
+
         var link = document.createElement('a');
         link.setAttribute("href", "#");
         link.setAttribute("class", "btn btn-outline-info");
@@ -555,12 +555,16 @@ var belay;
         // Create the list element:
         var list = document.createElement('ul');
         list.setAttribute("id","ul-data");//tried this for orgchart
+        var rowNumber = 0;
         for (var [key, value] of App.familyTreeStructure) {
-          var familyMember = App.addNode(key, value);
+          var rowDiv = document.createElement('div');
+          rowDiv.setAttribute("class", "row");
+
+          var familyMember = App.addNode(key, value);//li entry
           var familyMemberKey = "familyMember_"+key
           familyMember.setAttribute("id", familyMemberKey);
           // Add it to the list:
-          list.appendChild(familyMember);
+          rowDiv.appendChild(familyMember);
           if(value.partnerships && value.partnerships.length > 0){
             var partnershipId = parseFloat(value.partnerships[0][1]);//0 = doing only one partnership right now and 0 = self
             var partnership = App.addNode(partnershipId, App.familyTreeStructure.get(partnershipId));
@@ -573,8 +577,9 @@ var belay;
             var circleKey = "partnership_"+key+"_"+partnershipId;
             partnershipCircle.setAttribute("id", circleKey);
             partnershipCircle.appendChild(partnershipCircleDiv);
-            list.appendChild(partnershipCircle);
-            list.appendChild(partnership);
+            rowDiv.appendChild(partnershipCircle);
+            rowDiv.appendChild(partnership);
+            list.appendChild(rowDiv);
             // belay.on($("#"+familyMemberKey), $("#"+circleKey));
             // belay.on($("#"+circleKey), $("#"+partnershipKey));
             App.connections.push({from: familyMemberKey, to: circleKey});
